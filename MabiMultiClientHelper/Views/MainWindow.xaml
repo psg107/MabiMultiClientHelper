@@ -1,0 +1,166 @@
+﻿<mah:MetroWindow x:Class="MabiMultiClientHelper.Views.MainWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:local="clr-namespace:MabiMultiClientHelper"
+                 xmlns:ap="clr-namespace:MabiMultiClientHelper.AttachedProperty"
+                 xmlns:m="clr-namespace:MabiMultiClientHelper.Models"
+                 xmlns:vm="clr-namespace:MabiMultiClientHelper.ViewModels"
+                 xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+                 xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+                 xmlns:cmd="http://www.galasoft.ch/mvvmlight"
+                 mc:Ignorable="d"
+                 Title="마비노기 멀티 클라이언트 도우미"
+                 Topmost="{Binding ElementName=TopMostCheckBox, Path=IsChecked}"
+                 Width="350"
+                 Height="300"
+                 MinWidth="350"
+                 MinHeight="300"
+                 Name="Win">
+
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <DataTemplate x:Key="ListBoxClientInfoDataTemplate" DataType="{x:Type m:ClientInfo}">
+            <Grid Tag="{Binding DataContext, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}">
+                <Grid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="활성화" 
+                                  Command="{Binding PlacementTarget.Tag.ActivateWindowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding }" />
+                    </ContextMenu>
+                </Grid.ContextMenu>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{Binding PID}" />
+                <TextBlock Grid.Column="1" Text="{Binding Name}" />
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
+
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <cmd:EventToCommand Command="{Binding LoadCommand}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        
+        <!--리스트-->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!--메인 클라이언트-->
+            <TextBlock Grid.Column="0" Grid.Row="0" Text="메인 클라이언트" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="0,0,0,2" />
+            <ListBox Grid.Column="0" 
+                        Grid.Row="1" 
+                        ItemsSource="{Binding MainClients}" 
+                        ItemTemplate="{StaticResource ListBoxClientInfoDataTemplate}" 
+                        BorderBrush="#EEE"
+                        BorderThickness="1"
+                        ap:DragAndDrop.DragEnabled="True" 
+                        ap:DragAndDrop.DropEnabled="True" />
+
+            <!--서브 클라이언트-->
+            <TextBlock Grid.Column="1" Grid.Row="0" Text="서브 클라이언트" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="0,0,0,2" />
+            <ListBox Grid.Column="1" 
+                        Grid.Row="1" 
+                        ItemsSource="{Binding SubClients}" 
+                        ItemTemplate="{StaticResource ListBoxClientInfoDataTemplate}" 
+                        BorderBrush="#EEE"
+                        BorderThickness="1"
+                        ap:DragAndDrop.DragEnabled="True" 
+                        ap:DragAndDrop.DropEnabled="True">
+            </ListBox>
+        </Grid>
+        
+        <!--설정 및 버튼-->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!--slider-->
+            <Grid Grid.Column="0" Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="30" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="서브 제한율 : " VerticalAlignment="Center" />
+                <Slider x:Name="ProcessSlider" Grid.Column="1" Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding ProcessLimitPercent}" FocusVisualStyle="{x:Null}" IsEnabled="{Binding Running, Converter={StaticResource BoolValueConverter}}" />
+                <TextBlock Grid.Column="2" Text="{Binding ElementName=ProcessSlider, Path=Value}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0" />
+            </Grid>
+            
+            <!--topmost-->
+            <CheckBox x:Name="TopMostCheckBox" Grid.Column="0" Grid.Row="1" Content="항상 위" Margin="0,2" HorizontalAlignment="Left" />
+
+            <!--scan-->
+            <Button Grid.Column="0" Grid.Row="2" Content="스캔" Command="{Binding ScanCommand}">
+                <Button.Style>
+                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">
+                        <Setter Property="FontSize" Value="12" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Running}" Value="True">
+                                <Setter Property="IsEnabled" Value="False" />
+                                <Setter Property="Opacity" Value="0.3" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            
+            <!--run/stop-->
+            <Button Grid.Column="0" Grid.Row="3">
+                <Button.Style>
+                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">
+                        <Setter Property="Background" Value="White" />
+                        <Setter Property="Foreground" Value="#333" />
+                        <Setter Property="FontSize" Value="12" />
+                        
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SubClients.Count}" Value="0">
+                                <Setter Property="IsEnabled" Value="False" />
+                                <Setter Property="Opacity" Value="0.3" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Running}" Value="False">
+                                <Setter Property="Content" Value="작동" />
+                                <Setter Property="Command" Value="{Binding StartCommand}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Running}" Value="True">
+                                <Setter Property="Content" Value="정지" />
+                                <Setter Property="Command" Value="{Binding StopCommand}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
+    </Grid>
+    
+</mah:MetroWindow>
