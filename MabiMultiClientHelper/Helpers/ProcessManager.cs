@@ -232,5 +232,10 @@ namespace MabiMultiClientHelper.Helpers
             }
             return false;
         }
+
+        public void TryResumeProcess(int pid)
+        {
+            ResumeProcess(pid);
+        }
     }
 }

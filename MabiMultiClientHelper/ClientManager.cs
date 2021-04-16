@@ -12,7 +12,8 @@ namespace MabiMultiClientHelper
     {
         public List<ClientInfo> Scan()
         {
-            var processes = Process.GetProcessesByName("Client");
+            var processes = Process.GetProcessesByName("Client")
+                                   .Where(x => x.HandleCount != 0);
 
             var clients = processes.Select(x => new ClientInfo
             {

@@ -70,7 +70,7 @@ namespace MabiMultiClientHelper.ViewModels
             processManager = new ProcessManager();
 
 #warning 저장??
-            ProcessLimitPercent = 10;
+            ProcessLimitPercent = 1;
         }
 
         #endregion
@@ -137,6 +137,23 @@ namespace MabiMultiClientHelper.ViewModels
         }
 
         /// <summary>
+        /// 도우미 강제종료로 인해 클라이언트 응답없음이 된 경우 복원 시도
+        /// </summary>
+        public DelegateCommand RestoreClientCommand
+        {
+            get
+            {
+                return new DelegateCommand((parameter) =>
+                {
+                    if (parameter is ClientInfo clientInfo)
+                    {
+                        processManager.TryResumeProcess(clientInfo.PID);
+                    }
+                });
+            }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         public DelegateCommand StartCommand
@@ -156,10 +173,10 @@ namespace MabiMultiClientHelper.ViewModels
                     {
                         warnings.Add($"메인 클라이언트가 없음");
                     }
-                    if (this.MainClients.Count > 1)
-                    {
-                        warnings.Add($"메인 클라이언트가 두개 이상임 ({this.MainClients.Count}개)");
-                    }
+                    //if (this.MainClients.Count > 1)
+                    //{
+                    //    warnings.Add($"메인 클라이언트가 두개 이상임 ({this.MainClients.Count}개)");
+                    //}
 
                     if (warnings.Count > 0)
                     {

@@ -13,10 +13,11 @@
                  mc:Ignorable="d"
                  Title="마비노기 멀티 클라이언트 도우미"
                  Topmost="{Binding ElementName=TopMostCheckBox, Path=IsChecked}"
+                 WindowStartupLocation="CenterScreen"
                  Width="350"
                  Height="300"
-                 MinWidth="350"
-                 MinHeight="300"
+                 MinWidth="300"
+                 MinHeight="250"
                  Name="Win">
 
     <Window.DataContext>
@@ -25,24 +26,32 @@
 
     <Window.Resources>
         <DataTemplate x:Key="ListBoxClientInfoDataTemplate" DataType="{x:Type m:ClientInfo}">
-            <Grid Tag="{Binding DataContext, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}">
-                <Grid.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="활성화" 
-                                  Command="{Binding PlacementTarget.Tag.ActivateWindowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                  CommandParameter="{Binding }" />
-                    </ContextMenu>
-                </Grid.ContextMenu>
-
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="50" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="{Binding PID}" />
-                <TextBlock Grid.Column="1" Text="{Binding Name}" />
+                <TextBlock Grid.Column="0" Text="{Binding PID}" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" />
             </Grid>
         </DataTemplate>
+        <Style x:Key="ListBoxItemStyle" TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource MahApps.Styles.ListBoxItem}">
+            <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}" />
+            <Setter Property="ContextMenu">
+                <Setter.Value>
+                    <ContextMenu Tag="{Binding RelativeSource={RelativeSource Mode=Self}, Path=PlacementTarget.DataContext}">
+                        <MenuItem Header="활성화" 
+                                  Command="{Binding PlacementTarget.Tag.ActivateWindowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding }" />
+
+                        <MenuItem Header="응답없음 복원시도" 
+                                  Command="{Binding PlacementTarget.Tag.RestoreClientCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding }" />
+                    </ContextMenu>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <i:Interaction.Triggers>
@@ -71,25 +80,28 @@
             <!--메인 클라이언트-->
             <TextBlock Grid.Column="0" Grid.Row="0" Text="메인 클라이언트" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="0,0,0,2" />
             <ListBox Grid.Column="0" 
-                        Grid.Row="1" 
-                        ItemsSource="{Binding MainClients}" 
-                        ItemTemplate="{StaticResource ListBoxClientInfoDataTemplate}" 
-                        BorderBrush="#EEE"
-                        BorderThickness="1"
-                        ap:DragAndDrop.DragEnabled="True" 
-                        ap:DragAndDrop.DropEnabled="True" />
+                     Grid.Row="1" 
+                     ItemsSource="{Binding MainClients}" 
+                     ItemTemplate="{StaticResource ListBoxClientInfoDataTemplate}" 
+                     BorderBrush="#EEE"
+                     BorderThickness="1"
+                     ap:DragAndDrop.DragEnabled="True" 
+                     ap:DragAndDrop.DropEnabled="True"
+                     AllowDrop="{Binding Running, Converter={StaticResource BoolValueConverter}}"
+                     ItemContainerStyle="{StaticResource ListBoxItemStyle}" />
 
             <!--서브 클라이언트-->
             <TextBlock Grid.Column="1" Grid.Row="0" Text="서브 클라이언트" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="0,0,0,2" />
             <ListBox Grid.Column="1" 
-                        Grid.Row="1" 
-                        ItemsSource="{Binding SubClients}" 
-                        ItemTemplate="{StaticResource ListBoxClientInfoDataTemplate}" 
-                        BorderBrush="#EEE"
-                        BorderThickness="1"
-                        ap:DragAndDrop.DragEnabled="True" 
-                        ap:DragAndDrop.DropEnabled="True">
-            </ListBox>
+                     Grid.Row="1" 
+                     ItemsSource="{Binding SubClients}" 
+                     ItemTemplate="{StaticResource ListBoxClientInfoDataTemplate}" 
+                     BorderBrush="#EEE"
+                     BorderThickness="1"
+                     ap:DragAndDrop.DragEnabled="True" 
+                     ap:DragAndDrop.DropEnabled="True"
+                     AllowDrop="{Binding Running, Converter={StaticResource BoolValueConverter}}" 
+                     ItemContainerStyle="{StaticResource ListBoxItemStyle}" />
         </Grid>
         
         <!--설정 및 버튼-->
