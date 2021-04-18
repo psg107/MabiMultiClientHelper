@@ -165,40 +165,51 @@ namespace MabiMultiClientHelper.Helpers
 
                 while (defaultUsage == 0)
                 {
-                    Thread.Sleep(100);
+                    Thread.Sleep(interval);
 
                     defaultUsage = counter.NextValue() / Environment.ProcessorCount;
                     limitUsage = defaultUsage * limitPercent / 100;
                 }
 
-                while (true)
+                try
                 {
-                    float currentUsage = counter.NextValue() / Environment.ProcessorCount;
-
-                    if (currentUsage < limitUsage)
+                    while (true)
                     {
-                        continue;
+                        float currentUsage = counter.NextValue() / Environment.ProcessorCount;
+
+                        if (currentUsage < limitUsage)
+                        {
+                            continue;
+                        }
+
+#warning suspensionTime 계산 방식 개선 필요..
+                        double suspensionTime = (currentUsage - limitUsage) / currentUsage * interval;
+
+                        SuspendProcess(processID);
+
+                        Thread.Sleep((int)suspensionTime);
+
+                        ResumeProcess(processID);
+
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            throttleProcessPool.Remove(processID);
+                            return;
+                        }
                     }
-
-                    double suspensionTime = (currentUsage - limitUsage) / currentUsage * interval;
-
-                    SuspendProcess(processID);
-
-                    Thread.Sleep((int)suspensionTime);
-
-                    ResumeProcess(processID);
-
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        throttleProcessPool.Remove(processID);
-                        return;
-                    }
+                }
+                catch (Exception ex)
+                {
+#warning ??
+                    throttleProcessPool.Remove(processID);
+                    return;
                 }
             });
         }
 
         #endregion
 
+#warning 코드 정리 필요
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         private static readonly List<int> throttleProcessPool = new List<int>();
@@ -215,9 +226,14 @@ namespace MabiMultiClientHelper.Helpers
             Task.WaitAll();
         }
 
-        public void Stop()
+        public async Task Stop()
         {
             cancellationTokenSource.Cancel();
+            while (throttleProcessPool.Count > 0)
+            {
+                await Task.Delay(100);
+            }
+
             cancellationTokenSource = new CancellationTokenSource();
 
             return;

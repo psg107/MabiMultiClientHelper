@@ -87,11 +87,13 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="AttachedProperty\DragAndDrop.cs" />
+    <Compile Include="Helpers\Keylogger.cs" />
     <Compile Include="Helpers\MessageBoxHelper.cs" />
     <Compile Include="Helpers\ProcessManager.cs" />
     <Compile Include="Helpers\ThreadAccess.cs" />
     <Compile Include="Helpers\WinAPI.cs" />
     <Compile Include="Helpers\WindowHelper.cs" />
+    <Compile Include="RunOneInstance.cs" />
     <Compile Include="ValueConverters\BoolValueConverter.cs" />
     <Compile Include="ViewModels\Base\DelegateCommand.cs" />
     <Page Include="Resources\Styles.xaml">

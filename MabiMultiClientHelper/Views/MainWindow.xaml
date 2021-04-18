@@ -60,119 +60,162 @@
         </i:EventTrigger>
     </i:Interaction.Triggers>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <Border BorderThickness="2">
+        <Border.Style>
+            <Style TargetType="{x:Type Border}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Running}" Value="True">
+                        <Setter Property="BorderBrush" Value="Red" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Running}" Value="False">
+                        <Setter Property="BorderBrush" Value="Transparent" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
         
-        <!--리스트-->
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+        <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="30" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-
-            <!--메인 클라이언트-->
-            <TextBlock Grid.Column="0" Grid.Row="0" Text="메인 클라이언트" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="0,0,0,2" />
-            <ListBox Grid.Column="0" 
-                     Grid.Row="1" 
-                     ItemsSource="{Binding MainClients}" 
-                     ItemTemplate="{StaticResource ListBoxClientInfoDataTemplate}" 
-                     BorderBrush="#EEE"
-                     BorderThickness="1"
-                     ap:DragAndDrop.DragEnabled="True" 
-                     ap:DragAndDrop.DropEnabled="True"
-                     AllowDrop="{Binding Running, Converter={StaticResource BoolValueConverter}}"
-                     ItemContainerStyle="{StaticResource ListBoxItemStyle}" />
-
-            <!--서브 클라이언트-->
-            <TextBlock Grid.Column="1" Grid.Row="0" Text="서브 클라이언트" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="0,0,0,2" />
-            <ListBox Grid.Column="1" 
-                     Grid.Row="1" 
-                     ItemsSource="{Binding SubClients}" 
-                     ItemTemplate="{StaticResource ListBoxClientInfoDataTemplate}" 
-                     BorderBrush="#EEE"
-                     BorderThickness="1"
-                     ap:DragAndDrop.DragEnabled="True" 
-                     ap:DragAndDrop.DropEnabled="True"
-                     AllowDrop="{Binding Running, Converter={StaticResource BoolValueConverter}}" 
-                     ItemContainerStyle="{StaticResource ListBoxItemStyle}" />
-        </Grid>
         
-        <!--설정 및 버튼-->
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <!--slider-->
-            <Grid Grid.Column="0" Grid.Row="0">
+            <!--리스트-->
+            <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-                <TextBlock Grid.Column="0" Text="서브 제한율 : " VerticalAlignment="Center" />
-                <Slider x:Name="ProcessSlider" Grid.Column="1" Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding ProcessLimitPercent}" FocusVisualStyle="{x:Null}" IsEnabled="{Binding Running, Converter={StaticResource BoolValueConverter}}" />
-                <TextBlock Grid.Column="2" Text="{Binding ElementName=ProcessSlider, Path=Value}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0" />
+                <!--메인 클라이언트-->
+                <TextBlock Grid.Column="0" Grid.Row="0" Text="메인 클라이언트" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="0,0,0,2" />
+                <ListBox Grid.Column="0" 
+                         Grid.Row="1" 
+                         ItemsSource="{Binding MainClients}" 
+                         ItemTemplate="{StaticResource ListBoxClientInfoDataTemplate}" 
+                         BorderBrush="#EEE"
+                         BorderThickness="1"
+                         ap:DragAndDrop.DragEnabled="True" 
+                         ap:DragAndDrop.DropEnabled="True"
+                         AllowDrop="{Binding Running, Converter={StaticResource BoolValueConverter}}"
+                         ItemContainerStyle="{StaticResource ListBoxItemStyle}" />
+
+                <!--서브 클라이언트-->
+                <TextBlock Grid.Column="1" Grid.Row="0" Text="서브 클라이언트" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="0,0,0,2" />
+                <ListBox Grid.Column="1" 
+                         Grid.Row="1" 
+                         ItemsSource="{Binding SubClients}" 
+                         ItemTemplate="{StaticResource ListBoxClientInfoDataTemplate}" 
+                         BorderBrush="#EEE"
+                         BorderThickness="1"
+                         ap:DragAndDrop.DragEnabled="True" 
+                         ap:DragAndDrop.DropEnabled="True"
+                         AllowDrop="{Binding Running, Converter={StaticResource BoolValueConverter}}" 
+                         ItemContainerStyle="{StaticResource ListBoxItemStyle}" />
+
+                <ToggleButton x:Name="Btn" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Center" Width="20" Height="20" Padding="0" Margin="0" IsHitTestVisible="{Binding ElementName=Popup, Path=IsOpen, Mode=OneWay, Converter={StaticResource BoolValueConverter}}">
+                    <TextBlock Text="?"/>
+                </ToggleButton>
+
+                <Popup IsOpen="{Binding IsChecked, ElementName=Btn}" StaysOpen="False" PlacementTarget="{Binding ElementName=Btn}" Placement="Bottom" FocusVisualStyle="{x:Null}">
+                    <Border BorderBrush="Black" BorderThickness="1" Background="White" Padding="10">
+                        <TextBlock TextWrapping="Wrap">
+                            마비노기 멀티 클라이언트를 쉽게 관리하기 위한 프로그램입니다. <LineBreak />
+                            <LineBreak />
+                            [사용방법]<LineBreak />
+                            1. 스캔 버튼을 눌러 현재 실행중인 마비노기 클라이언트를 스캔한다.<LineBreak />
+                            2. '서브 클라이언트'에서 본캐릭터가 접속중인 클라이언트를 찾아 '메인 클라이언트'로 옮긴다.<LineBreak />
+                            3. 작동 버튼을 누르면 약 5초 후 작동한다.<LineBreak />
+                            <LineBreak />
+                            [추가 기능]<LineBreak />
+                            ScrollLock : 멀티 클라이언트 도우미 창 활성화<LineBreak />
+                            마우스 우클릭 : 클라이언트 개별 기능<LineBreak />
+                            <LineBreak />
+                            마비노기 갤러리 울프
+                        </TextBlock>
+                    </Border>
+                </Popup>
             </Grid>
-            
-            <!--topmost-->
-            <CheckBox x:Name="TopMostCheckBox" Grid.Column="0" Grid.Row="1" Content="항상 위" Margin="0,2" HorizontalAlignment="Left" />
+        
+            <!--설정 및 버튼-->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-            <!--scan-->
-            <Button Grid.Column="0" Grid.Row="2" Content="스캔" Command="{Binding ScanCommand}">
-                <Button.Style>
-                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">
-                        <Setter Property="FontSize" Value="12" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Running}" Value="True">
-                                <Setter Property="IsEnabled" Value="False" />
-                                <Setter Property="Opacity" Value="0.3" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Button.Style>
-            </Button>
+                <!--slider-->
+                <Grid Grid.Column="0" Grid.Row="0" ToolTip="그냥 1로 두고 쓰세요">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="30" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="서브 제한율 : " VerticalAlignment="Center" />
+                    <Slider x:Name="ProcessSlider" Grid.Column="1" Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding ProcessLimitPercent}" FocusVisualStyle="{x:Null}" IsEnabled="{Binding Running, Converter={StaticResource BoolValueConverter}}" />
+                    <TextBlock Grid.Column="2" Text="{Binding ElementName=ProcessSlider, Path=Value}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0" />
+                </Grid>
             
-            <!--run/stop-->
-            <Button Grid.Column="0" Grid.Row="3">
-                <Button.Style>
-                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">
-                        <Setter Property="Background" Value="White" />
-                        <Setter Property="Foreground" Value="#333" />
-                        <Setter Property="FontSize" Value="12" />
+                <!--topmost-->
+                <CheckBox x:Name="TopMostCheckBox" Grid.Column="0" Grid.Row="1" Content="항상 위 (ScrollLock으로 활성화 가능)" Margin="0,2" HorizontalAlignment="Left" />
+
+                <!--scan-->
+                <Button Grid.Column="0" Grid.Row="2" Content="스캔" Command="{Binding ScanCommand}">
+                    <Button.Style>
+                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">
+                            <Setter Property="FontSize" Value="12" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Running}" Value="True">
+                                    <Setter Property="IsEnabled" Value="False" />
+                                    <Setter Property="Opacity" Value="0.3" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            
+                <!--run/stop-->
+                <Button Grid.Column="0" Grid.Row="3">
+                    <Button.Style>
+                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">
+                            <Setter Property="Background" Value="White" />
+                            <Setter Property="Foreground" Value="#333" />
+                            <Setter Property="FontSize" Value="12" />
                         
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding SubClients.Count}" Value="0">
-                                <Setter Property="IsEnabled" Value="False" />
-                                <Setter Property="Opacity" Value="0.3" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Running}" Value="False">
-                                <Setter Property="Content" Value="작동" />
-                                <Setter Property="Command" Value="{Binding StartCommand}" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Running}" Value="True">
-                                <Setter Property="Content" Value="정지" />
-                                <Setter Property="Command" Value="{Binding StopCommand}" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Button.Style>
-            </Button>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SubClients.Count}" Value="0">
+                                    <Setter Property="IsEnabled" Value="False" />
+                                    <Setter Property="Opacity" Value="0.3" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Running}" Value="False">
+                                    <Setter Property="Content" Value="작동" />
+                                    <Setter Property="Command" Value="{Binding StartCommand}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Running}" Value="True">
+                                    <Setter Property="Content" Value="정지" />
+                                    <Setter Property="Command" Value="{Binding StopCommand}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Stopping}" Value="True">
+                                    <Setter Property="Content" Value="정지 중.." />
+                                    <Setter Property="IsEnabled" Value="False" />
+                                    <Setter Property="Opacity" Value="0.3" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
         </Grid>
-    </Grid>
+    </Border>
     
 </mah:MetroWindow>

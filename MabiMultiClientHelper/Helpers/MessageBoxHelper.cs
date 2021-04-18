@@ -5,7 +5,7 @@ namespace MabiMultiClientHelper.Helpers
 {
     public class MessageBoxHelper
     {
-        private const string CAPTION = "알림";
+        private const string CAPTION = "마비노기 멀티 클라이언트 도우미";
         private readonly ViewModelBase dataContext;
 
         public MessageBoxHelper(ViewModelBase dataContext)

@@ -3,10 +3,14 @@ using MabiMultiClientHelper.Helpers;
 using MabiMultiClientHelper.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Linq;
 
 namespace MabiMultiClientHelper.ViewModels
 {
+    /// <summary>
+    /// <seealso cref="Views.MainWindow"/>
+    /// </summary>
     public class MainViewModel : ViewModelBase
     {
         #region property
@@ -51,10 +55,20 @@ namespace MabiMultiClientHelper.ViewModels
             set => Set(ref running, value);
         }
 
+        /// <summary>
+        /// 작동중지중 true, 그 외 false
+        /// </summary>
+        public bool Stopping
+        {
+            get => stopping;
+            set => Set(ref stopping, value);
+        }
+
         private ObservableCollection<ClientInfo> mainClients;
         private ObservableCollection<ClientInfo> subClients;
         private int processLimitPercent;
         private bool running;
+        private bool stopping;
 
         #endregion
 
@@ -111,7 +125,7 @@ namespace MabiMultiClientHelper.ViewModels
                     var clients = clientManager.Scan();
                     foreach (var client in clients)
                     {
-                        MainClients.Add(client);
+                        SubClients.Add(client);
 
                         WinAPI.SetWindowText(client.Handle, client.Name);
                     }
@@ -167,6 +181,23 @@ namespace MabiMultiClientHelper.ViewModels
                         return;
                     }
 
+                    var clients = this.MainClients.Concat(this.SubClients);
+                    foreach (var client in clients)
+                    {
+                        try
+                        {
+                            var process = Process.GetProcessById(client.PID);
+                        }
+                        catch (System.Exception)
+                        {
+                            messageBoxHelper.ShowMessage($"" +
+                                $"PID : {client.PID}를 찾는 중 오류가 발생했습니다.\n" +
+                                $"클라이언트를 다시 스캔합니다.");
+                            ScanCommand.Execute(null);
+                            return;
+                        }
+                    }
+
                     List<string> warnings = new List<string>();
 
                     if (this.MainClients.Count == 0)
@@ -209,15 +240,27 @@ namespace MabiMultiClientHelper.ViewModels
         {
             get
             {
-                return new DelegateCommand((parameter) =>
+                return new DelegateCommand(async (parameter) =>
                 {
                     if (!Running)
                     {
                         return;
                     }
+                    if (Stopping)
+                    {
+                        return;
+                    }
 
-                    processManager.Stop();
-                    Running = false;
+                    try
+                    {
+                        Stopping = true;
+                        await processManager.Stop();
+                    }
+                    finally
+                    {
+                        Running = false;
+                        Stopping = false;
+                    }
                 });
             }
         }
