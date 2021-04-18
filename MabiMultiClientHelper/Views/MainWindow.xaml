@@ -12,7 +12,6 @@
                  xmlns:cmd="http://www.galasoft.ch/mvvmlight"
                  mc:Ignorable="d"
                  Title="마비노기 멀티 클라이언트 도우미"
-                 Topmost="{Binding ElementName=TopMostCheckBox, Path=IsChecked}"
                  WindowStartupLocation="CenterScreen"
                  Width="350"
                  Height="300"
@@ -148,29 +147,15 @@
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-
-                <!--slider-->
-                <Grid Grid.Column="0" Grid.Row="0" ToolTip="그냥 1로 두고 쓰세요">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="30" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Column="0" Text="서브 제한율 : " VerticalAlignment="Center" />
-                    <Slider x:Name="ProcessSlider" Grid.Column="1" Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding ProcessLimitPercent}" FocusVisualStyle="{x:Null}" IsEnabled="{Binding Running, Converter={StaticResource BoolValueConverter}}" />
-                    <TextBlock Grid.Column="2" Text="{Binding ElementName=ProcessSlider, Path=Value}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0" />
-                </Grid>
             
-                <!--topmost-->
-                <CheckBox x:Name="TopMostCheckBox" Grid.Column="0" Grid.Row="1" Content="항상 위 (ScrollLock으로 활성화 가능)" Margin="0,2" HorizontalAlignment="Left" />
+                <!--passActivateWindow-->
+                <CheckBox Grid.Column="0" Grid.Row="0" Content="활성화중인 서브 클라이언트 CPU 제한 해제" IsChecked="{Binding PassWhenActivateCheckBox}" Margin="2" HorizontalAlignment="Left" IsEnabled="{Binding Running, Converter={StaticResource BoolValueConverter}}" />
 
                 <!--scan-->
-                <Button Grid.Column="0" Grid.Row="2" Content="스캔" Command="{Binding ScanCommand}">
+                <Button Grid.Column="0" Grid.Row="1" Content="스캔" Command="{Binding ScanCommand}">
                     <Button.Style>
                         <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">
                             <Setter Property="FontSize" Value="12" />
@@ -185,7 +170,7 @@
                 </Button>
             
                 <!--run/stop-->
-                <Button Grid.Column="0" Grid.Row="3">
+                <Button Grid.Column="0" Grid.Row="2">
                     <Button.Style>
                         <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">
                             <Setter Property="Background" Value="White" />

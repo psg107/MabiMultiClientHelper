@@ -27,5 +27,14 @@ namespace MabiMultiClientHelper.Helpers
             Process p = Process.GetProcessById((int)pid);
             return p.ProcessName;
         }
+
+        public static uint GetActiveProcessId()
+        {
+            IntPtr hwnd = GetForegroundWindow();
+            uint pid;
+            GetWindowThreadProcessId(hwnd, out pid);
+
+            return pid;
+        }
     }
 }

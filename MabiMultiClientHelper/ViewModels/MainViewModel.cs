@@ -38,15 +38,6 @@ namespace MabiMultiClientHelper.ViewModels
         }
 
         /// <summary>
-        /// 서브 클라이언트 제한 비율 (0~100)
-        /// </summary>
-        public int ProcessLimitPercent
-        {
-            get => processLimitPercent;
-            set => Set(ref processLimitPercent, value);
-        }
-
-        /// <summary>
         /// 작동중 true, 그 외 false
         /// </summary>
         public bool Running
@@ -64,11 +55,20 @@ namespace MabiMultiClientHelper.ViewModels
             set => Set(ref stopping, value);
         }
 
+        /// <summary>
+        /// true: 활성화 중에는 CPU 제한 해제, false: 작동 중에는 항상 서브 클라이언트 CPU 제한
+        /// </summary>
+        public bool PassWhenActivateCheckBox
+        {
+            get => passWhenActivateCheckBox;
+            set => Set(ref passWhenActivateCheckBox, value);
+        }
+
         private ObservableCollection<ClientInfo> mainClients;
         private ObservableCollection<ClientInfo> subClients;
-        private int processLimitPercent;
         private bool running;
         private bool stopping;
+        private bool passWhenActivateCheckBox;
 
         #endregion
 
@@ -82,9 +82,6 @@ namespace MabiMultiClientHelper.ViewModels
             messageBoxHelper = new MessageBoxHelper(this);
             clientManager = new ClientManager();
             processManager = new ProcessManager();
-
-#warning 저장??
-            ProcessLimitPercent = 1;
         }
 
         #endregion
@@ -224,11 +221,12 @@ namespace MabiMultiClientHelper.ViewModels
                     }
 
                     Running = true;
+                    processManager.PassWhenActivateCheckBox = this.PassWhenActivateCheckBox;
                     foreach (var clientInfo in this.SubClients)
                     {
                         processManager.AddThrottleProcess(clientInfo.PID);
                     }
-                    processManager.Start(ProcessLimitPercent);
+                    processManager.Start();
                 });
             }
         }

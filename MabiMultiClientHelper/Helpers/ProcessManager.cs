@@ -175,19 +175,24 @@ namespace MabiMultiClientHelper.Helpers
                 {
                     while (true)
                     {
-                        float currentUsage = counter.NextValue() / Environment.ProcessorCount;
-
-                        if (currentUsage < limitUsage)
+                        if (PassWhenActivateCheckBox)
                         {
-                            continue;
-                        }
+                            if (WinAPI.GetActiveProcessId() == processID)
+                            {
+                                if (cancellationToken.IsCancellationRequested)
+                                {
+                                    throttleProcessPool.Remove(processID);
+                                    return;
+                                }
 
-#warning suspensionTime 계산 방식 개선 필요..
-                        double suspensionTime = (currentUsage - limitUsage) / currentUsage * interval;
+                                Thread.Sleep(100);
+                                continue;
+                            }
+                        }
 
                         SuspendProcess(processID);
 
-                        Thread.Sleep((int)suspensionTime);
+                        Thread.Sleep(interval);
 
                         ResumeProcess(processID);
 
@@ -214,14 +219,17 @@ namespace MabiMultiClientHelper.Helpers
 
         private static readonly List<int> throttleProcessPool = new List<int>();
 
-        public void Start(int percent)
+        public bool PassWhenActivateCheckBox { get; set; }
+
+        public void Start()
         {
             var cancellationToken = cancellationTokenSource.Token;
 
             List<Task> throttleProcessTasks = new List<Task>();
             foreach (var processID in throttleProcessPool)
             {
-                throttleProcessTasks.Add(ThrottleProcessAsync(processID, percent, cancellationToken));
+#warning percent 1 고정
+                throttleProcessTasks.Add(ThrottleProcessAsync(processID, 1, cancellationToken));
             }
             Task.WaitAll();
         }
