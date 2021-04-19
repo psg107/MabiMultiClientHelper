@@ -143,15 +143,10 @@ namespace MabiMultiClientHelper.Helpers
         /// </summary>
         /// <param name="processID">프로세스 ID</param>
         /// <param name="limitPercent">제한 사용률</param>
-        private Task ThrottleProcessAsync(int processID, double limitPercent, CancellationToken cancellationToken)
+        private Task ThrottleProcessAsync(int processID, CancellationToken cancellationToken)
         {
             return Task.Run(() =>
             {
-                if (limitPercent < 0 || limitPercent > 100)
-                {
-                    throw new Exception("limitPercent는 0부터 100까지");
-                }
-
                 Process process = Process.GetProcessById(processID);
 
                 string instanceName = process.ProcessName;
@@ -160,22 +155,11 @@ namespace MabiMultiClientHelper.Helpers
 
                 int interval = 100;
 
-                double defaultUsage = 0;
-                double limitUsage = 0;
-
-                while (defaultUsage == 0)
-                {
-                    Thread.Sleep(interval);
-
-                    defaultUsage = counter.NextValue() / Environment.ProcessorCount;
-                    limitUsage = defaultUsage * limitPercent / 100;
-                }
-
                 try
                 {
                     while (true)
                     {
-                        if (PassWhenActivateCheckBox)
+                        if (PassWhenActivate)
                         {
                             if (WinAPI.GetActiveProcessId() == processID)
                             {
@@ -219,7 +203,7 @@ namespace MabiMultiClientHelper.Helpers
 
         private static readonly List<int> throttleProcessPool = new List<int>();
 
-        public bool PassWhenActivateCheckBox { get; set; }
+        public bool PassWhenActivate { get; set; }
 
         public void Start()
         {
@@ -228,8 +212,7 @@ namespace MabiMultiClientHelper.Helpers
             List<Task> throttleProcessTasks = new List<Task>();
             foreach (var processID in throttleProcessPool)
             {
-#warning percent 1 고정
-                throttleProcessTasks.Add(ThrottleProcessAsync(processID, 1, cancellationToken));
+                throttleProcessTasks.Add(ThrottleProcessAsync(processID, cancellationToken));
             }
             Task.WaitAll();
         }

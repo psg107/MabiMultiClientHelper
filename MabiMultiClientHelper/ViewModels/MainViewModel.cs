@@ -82,6 +82,8 @@ namespace MabiMultiClientHelper.ViewModels
             messageBoxHelper = new MessageBoxHelper(this);
             clientManager = new ClientManager();
             processManager = new ProcessManager();
+
+            PassWhenActivateCheckBox = true;
         }
 
         #endregion
@@ -221,7 +223,7 @@ namespace MabiMultiClientHelper.ViewModels
                     }
 
                     Running = true;
-                    processManager.PassWhenActivateCheckBox = this.PassWhenActivateCheckBox;
+                    processManager.PassWhenActivate = this.PassWhenActivateCheckBox;
                     foreach (var clientInfo in this.SubClients)
                     {
                         processManager.AddThrottleProcess(clientInfo.PID);
