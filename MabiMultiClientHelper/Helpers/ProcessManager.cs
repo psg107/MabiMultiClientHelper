@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -143,57 +144,45 @@ namespace MabiMultiClientHelper.Helpers
         /// </summary>
         /// <param name="processID">프로세스 ID</param>
         /// <param name="limitPercent">제한 사용률</param>
-        private Task ThrottleProcessAsync(int processID, CancellationToken cancellationToken)
+        private void ThrottleProcessAsync(int processID, CancellationToken cancellationToken)
         {
-            return Task.Run(() =>
+            try
             {
-                Process process = Process.GetProcessById(processID);
-
-                string instanceName = process.ProcessName;
-
-                PerformanceCounter counter = new PerformanceCounter("Process", "% Processor Time", instanceName);
-
-                int interval = 100;
-
-                try
+                while (true)
                 {
-                    while (true)
+                    if (cancellationToken.IsCancellationRequested)
                     {
-                        if (PassWhenActivate)
+                        throttleProcessPool.Remove(processID);
+                        Console.WriteLine($"Cancel {processID} => {throttleProcessPool.Count} / [{string.Join(",", throttleProcessPool.Select(x => x.ToString()))}]");
+                        return;
+                    }
+
+                    if (PassWhenActivate)
+                    {
+                        if (WinAPI.GetActiveProcessId() == processID)
                         {
-                            if (WinAPI.GetActiveProcessId() == processID)
-                            {
-                                if (cancellationToken.IsCancellationRequested)
-                                {
-                                    throttleProcessPool.Remove(processID);
-                                    return;
-                                }
 
-                                Thread.Sleep(100);
-                                continue;
-                            }
-                        }
-
-                        SuspendProcess(processID);
-
-                        Thread.Sleep(interval);
-
-                        ResumeProcess(processID);
-
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            throttleProcessPool.Remove(processID);
-                            return;
+                            Thread.Sleep(100);
+                            continue;
                         }
                     }
+
+                    SuspendProcess(processID);
+
+                    Thread.Sleep(this.SuspendInterval);
+
+                    ResumeProcess(processID);
+
+#warning 하드코딩;;
+                    Thread.Sleep(100 - this.SuspendInterval);
                 }
-                catch (Exception ex)
-                {
-#warning ??
-                    throttleProcessPool.Remove(processID);
-                    return;
-                }
-            });
+            }
+            catch (Exception ex)
+            {
+                throttleProcessPool.Remove(processID);
+                Console.WriteLine($"Cancel {processID} => {throttleProcessPool.Count} / [{string.Join(",", throttleProcessPool.Select(x => x.ToString()))}]");
+                return;
+            }
         }
 
         #endregion
@@ -205,16 +194,21 @@ namespace MabiMultiClientHelper.Helpers
 
         public bool PassWhenActivate { get; set; }
 
-        public void Start()
+        public int SuspendInterval { get; set; } = 100;
+
+        public async Task Start()
         {
             var cancellationToken = cancellationTokenSource.Token;
 
             List<Task> throttleProcessTasks = new List<Task>();
             foreach (var processID in throttleProcessPool)
             {
-                throttleProcessTasks.Add(ThrottleProcessAsync(processID, cancellationToken));
+                var throttleTask = Task.Run(() => ThrottleProcessAsync(processID, cancellationToken));
+                throttleProcessTasks.Add(throttleTask);
             }
-            Task.WaitAll();
+            await Task.WhenAll(throttleProcessTasks.ToArray());
+
+            cancellationTokenSource = new CancellationTokenSource();
         }
 
         public async Task Stop()
@@ -225,9 +219,12 @@ namespace MabiMultiClientHelper.Helpers
                 await Task.Delay(100);
             }
 
-            cancellationTokenSource = new CancellationTokenSource();
-
             return;
+        }
+
+        public void ClearThrottleProcesses()
+        {
+            throttleProcessPool.Clear();
         }
 
         public bool AddThrottleProcess(int processId)

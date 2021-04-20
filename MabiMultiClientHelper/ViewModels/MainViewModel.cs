@@ -64,11 +64,29 @@ namespace MabiMultiClientHelper.ViewModels
             set => Set(ref passWhenActivateCheckBox, value);
         }
 
+        /// <summary>
+        /// 정지간격 (ms, 값 높을수록 느려짐)
+        /// </summary>
+        public int SuspendInterval
+        {
+            get => suspendInterval;
+            set
+            {
+                Set(ref suspendInterval, value);
+
+                if (this.processManager != null)
+                {
+                    this.processManager.SuspendInterval = value;
+                }
+            }
+        }
+
         private ObservableCollection<ClientInfo> mainClients;
         private ObservableCollection<ClientInfo> subClients;
         private bool running;
         private bool stopping;
         private bool passWhenActivateCheckBox;
+        private int suspendInterval;
 
         #endregion
 
@@ -84,6 +102,7 @@ namespace MabiMultiClientHelper.ViewModels
             processManager = new ProcessManager();
 
             PassWhenActivateCheckBox = true;
+            SuspendInterval = 100;
         }
 
         #endregion
@@ -173,7 +192,7 @@ namespace MabiMultiClientHelper.ViewModels
         {
             get
             {
-                return new DelegateCommand((parameter) =>
+                return new DelegateCommand(async (parameter) =>
                 {
                     if (Running)
                     {
@@ -224,11 +243,13 @@ namespace MabiMultiClientHelper.ViewModels
 
                     Running = true;
                     processManager.PassWhenActivate = this.PassWhenActivateCheckBox;
+                    processManager.ClearThrottleProcesses();
                     foreach (var clientInfo in this.SubClients)
                     {
                         processManager.AddThrottleProcess(clientInfo.PID);
                     }
-                    processManager.Start();
+                    processManager.SuspendInterval = this.SuspendInterval;
+                    await processManager.Start();
                 });
             }
         }
