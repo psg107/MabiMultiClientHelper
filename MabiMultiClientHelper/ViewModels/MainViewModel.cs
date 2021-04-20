@@ -58,10 +58,19 @@ namespace MabiMultiClientHelper.ViewModels
         /// <summary>
         /// true: 활성화 중에는 CPU 제한 해제, false: 작동 중에는 항상 서브 클라이언트 CPU 제한
         /// </summary>
-        public bool PassWhenActivateCheckBox
+        public bool PassWhenClientActivated
         {
-            get => passWhenActivateCheckBox;
-            set => Set(ref passWhenActivateCheckBox, value);
+            get => passWhenClientActivated;
+            set => Set(ref passWhenClientActivated, value);
+        }
+
+        /// <summary>
+        /// cpu선호도 설정
+        /// </summary>
+        public bool SetAffinity
+        {
+            get => setAffinity;
+            set => Set(ref setAffinity, value);
         }
 
         /// <summary>
@@ -85,7 +94,8 @@ namespace MabiMultiClientHelper.ViewModels
         private ObservableCollection<ClientInfo> subClients;
         private bool running;
         private bool stopping;
-        private bool passWhenActivateCheckBox;
+        private bool passWhenClientActivated;
+        private bool setAffinity;
         private int suspendInterval;
 
         #endregion
@@ -101,7 +111,8 @@ namespace MabiMultiClientHelper.ViewModels
             clientManager = new ClientManager();
             processManager = new ProcessManager();
 
-            PassWhenActivateCheckBox = true;
+            passWhenClientActivated = true;
+            SetAffinity = true;
             SuspendInterval = 100;
         }
 
@@ -242,7 +253,30 @@ namespace MabiMultiClientHelper.ViewModels
                     }
 
                     Running = true;
-                    processManager.PassWhenActivate = this.PassWhenActivateCheckBox;
+
+                    //프로세스 선호도 설정
+                    if (this.SetAffinity)
+                    {
+                        var firstProcessID = this.MainClients.Concat(this.SubClients).First().PID;
+                        var affinity = processManager.GetAffinity(firstProcessID);
+                        var affinityCount = processManager.GetAffinityCount(firstProcessID);
+                        var subClientAffinityCount = 2;
+
+                        var mainAffinity = new string('0', subClientAffinityCount) + new string('1', affinityCount - subClientAffinityCount);
+                        var subAffinity = new string('1', subClientAffinityCount) + new string('0', affinityCount - subClientAffinityCount);
+
+                        foreach (var clientInfo in this.MainClients)
+                        {
+                            processManager.SetAffinity(clientInfo.PID, mainAffinity);
+                        }
+                        foreach (var clientInfo in this.SubClients)
+                        {
+                            processManager.SetAffinity(clientInfo.PID, subAffinity);
+                        }
+                    }
+
+                    //프로세스 cpu 제한
+                    processManager.PassWhenActivate = this.passWhenClientActivated;
                     processManager.ClearThrottleProcesses();
                     foreach (var clientInfo in this.SubClients)
                     {
@@ -275,6 +309,25 @@ namespace MabiMultiClientHelper.ViewModels
                     try
                     {
                         Stopping = true;
+
+                        //프로세스 선호도 설정
+                        if (this.SetAffinity)
+                        {
+                            var firstProcessID = this.MainClients.Concat(this.SubClients).First().PID;
+                            var affinity = processManager.GetAffinity(firstProcessID);
+                            var affinityCount = processManager.GetAffinityCount(firstProcessID);
+
+                            var defaultAffinity = new string('1', affinityCount);
+
+                            foreach (var clientInfo in this.MainClients)
+                            {
+                                processManager.SetAffinity(clientInfo.PID, defaultAffinity);
+                            }
+                            foreach (var clientInfo in this.SubClients)
+                            {
+                                processManager.SetAffinity(clientInfo.PID, defaultAffinity);
+                            }
+                        }
                         await processManager.Stop();
                     }
                     finally

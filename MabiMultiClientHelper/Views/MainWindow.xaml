@@ -148,15 +148,19 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
             
                 <!--passActivateWindow-->
-                <CheckBox Grid.Column="0" Grid.Row="0" Content="활성화중인 서브 클라이언트 CPU 제한 해제" IsChecked="{Binding PassWhenActivateCheckBox}" Margin="2" HorizontalAlignment="Left" IsEnabled="{Binding Running, Converter={StaticResource BoolValueConverter}}" />
-                
+                <CheckBox Grid.Column="0" Grid.Row="0" Content="활성화중인 서브 클라이언트 CPU 제한 해제" IsChecked="{Binding PassWhenClientActivated}" Margin="2" HorizontalAlignment="Left" IsEnabled="{Binding Running, Converter={StaticResource BoolValueConverter}}" />
+
+                <!--affinity-->
+                <CheckBox Grid.Column="0" Grid.Row="1" Content="클라이언트 선호도 변경" IsChecked="{Binding SetAffinity}" Margin="2" HorizontalAlignment="Left" IsEnabled="{Binding Running, Converter={StaticResource BoolValueConverter}}" />
+
                 <!--slider-->
-                <Grid Grid.Column="0" Grid.Row="1" ToolTip="값이 높을수록 느려짐" Margin="2,0,0,2">
+                <Grid Grid.Column="0" Grid.Row="2" ToolTip="값이 높을수록 느려짐" Margin="2,0,0,2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -169,7 +173,7 @@
                 </Grid>
 
                 <!--scan-->
-                <Button Grid.Column="0" Grid.Row="2" Content="스캔" Command="{Binding ScanCommand}">
+                <Button Grid.Column="0" Grid.Row="3" Content="스캔" Command="{Binding ScanCommand}">
                     <Button.Style>
                         <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">
                             <Setter Property="FontSize" Value="12" />
@@ -184,7 +188,7 @@
                 </Button>
             
                 <!--run/stop-->
-                <Button Grid.Column="0" Grid.Row="3">
+                <Button Grid.Column="0" Grid.Row="4">
                     <Button.Style>
                         <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">
                             <Setter Property="Background" Value="White" />

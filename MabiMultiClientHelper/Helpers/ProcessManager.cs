@@ -13,9 +13,22 @@ namespace MabiMultiClientHelper.Helpers
     /// </summary>
     public class ProcessManager
     {
-        //////////////////////////////////////////////////////////////////////////////////////////////////// Import
-        ////////////////////////////////////////////////////////////////////////////////////////// Static
-        //////////////////////////////////////////////////////////////////////////////// Private
+        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
+        /// <summary>
+        /// 프로세스 풀
+        /// </summary>
+        private static readonly List<int> throttleProcessPool = new List<int>();
+
+        /// <summary>
+        /// 활성화중인 클라이언트 무시
+        /// </summary>
+        public bool PassWhenActivate { get; set; }
+
+        /// <summary>
+        /// 정지 간격
+        /// </summary>
+        public int SuspendInterval { get; set; } = 100;
 
         #region 스레드 열기 - OpenThread(threadAccess, inheritHandle, threadID)
 
@@ -30,6 +43,7 @@ namespace MabiMultiClientHelper.Helpers
         private static extern IntPtr OpenThread(ThreadAccess threadAccess, bool inheritHandle, uint threadID);
 
         #endregion
+
         #region 스레드 실행 일시 중지하기 - SuspendThread(threadHandle)
 
         /// <summary>
@@ -41,6 +55,7 @@ namespace MabiMultiClientHelper.Helpers
         private static extern uint SuspendThread(IntPtr threadHandle);
 
         #endregion
+
         #region 스레드 다시 실행하기 - ResumeThread(threadHandle)
 
         /// <summary>
@@ -52,6 +67,7 @@ namespace MabiMultiClientHelper.Helpers
         private static extern int ResumeThread(IntPtr threadHandle);
 
         #endregion
+
         #region 핸들 닫기 - CloseHandle(threadHandle)
 
         /// <summary>
@@ -63,10 +79,6 @@ namespace MabiMultiClientHelper.Helpers
         private static extern int CloseHandle(IntPtr threadHandle);
 
         #endregion
-
-        //////////////////////////////////////////////////////////////////////////////////////////////////// Method
-        ////////////////////////////////////////////////////////////////////////////////////////// Static
-        //////////////////////////////////////////////////////////////////////////////// Public
 
         #region 프로세스 실행 일시 중지하기 - SuspendProcess(processID)
 
@@ -99,6 +111,7 @@ namespace MabiMultiClientHelper.Helpers
         }
 
         #endregion
+
         #region 프로세스 다시 실행하기 - ResumeProcess(processiD)
 
         /// <summary>
@@ -187,14 +200,73 @@ namespace MabiMultiClientHelper.Helpers
 
         #endregion
 
-#warning 코드 정리 필요
-        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        #region 프로세스 우선순위 조절
 
-        private static readonly List<int> throttleProcessPool = new List<int>();
+        public int GetAffinityCount(int processID)
+        {
+            var foramteedAffinity = GetAffinity(processID);
 
-        public bool PassWhenActivate { get; set; }
+            return foramteedAffinity.Length;
+        }
 
-        public int SuspendInterval { get; set; } = 100;
+        public string GetAffinity(int processID)
+        {
+            try
+            {
+                Process process = Process.GetProcessById(processID);
+
+                if (process.ProcessName == string.Empty)
+                {
+                    return string.Empty;
+                }
+
+                int processorAffinity = (int)process.ProcessorAffinity;
+                var foramteedAffinity = FormatAffinity(processorAffinity);
+
+                return foramteedAffinity;
+            }
+            catch (Exception ex)
+            {
+                return string.Empty;
+            }
+        }
+
+        public IntPtr SetAffinity(int processID, string formattedAffinity)
+        {
+            try
+            {
+                Process process = Process.GetProcessById(processID);
+
+                if (process.ProcessName == string.Empty)
+                {
+                    return IntPtr.Zero;
+                }
+
+                int processorAffinity = (int)process.ProcessorAffinity;
+                var foramteedAffinity = FormatAffinity(processorAffinity);
+
+                if (foramteedAffinity.Length != formattedAffinity.Length)
+                {
+                    return IntPtr.Zero;
+                }
+
+                int newAffinity = Convert.ToInt32(formattedAffinity, 2);
+                process.ProcessorAffinity = new IntPtr(newAffinity);
+
+                return process.ProcessorAffinity;
+            }
+            catch (Exception ex)
+            {
+                return IntPtr.Zero;
+            }
+        }
+
+        private static string FormatAffinity(int affinity)
+        {
+            return Convert.ToString(affinity, 2).PadLeft(Environment.ProcessorCount, '0');
+        } 
+
+        #endregion
 
         public async Task Start()
         {
