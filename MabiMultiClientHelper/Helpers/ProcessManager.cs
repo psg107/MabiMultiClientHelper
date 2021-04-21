@@ -18,7 +18,7 @@ namespace MabiMultiClientHelper.Helpers
         /// <summary>
         /// 프로세스 풀
         /// </summary>
-        private static readonly List<int> throttleProcessPool = new List<int>();
+        private static readonly ThreadSafeList<int> throttleProcessPool = new ThreadSafeList<int>();
 
         /// <summary>
         /// 활성화중인 클라이언트 무시
@@ -202,14 +202,14 @@ namespace MabiMultiClientHelper.Helpers
 
         #region 프로세스 우선순위 조절
 
-        public int GetAffinityCount(int processID)
+        public int GetProcessAffinityCount(int processID)
         {
-            var foramteedAffinity = GetAffinity(processID);
+            var foramteedAffinity = GetProcessAffinity(processID);
 
             return foramteedAffinity.Length;
         }
 
-        public string GetAffinity(int processID)
+        public string GetProcessAffinity(int processID)
         {
             try
             {
@@ -231,7 +231,7 @@ namespace MabiMultiClientHelper.Helpers
             }
         }
 
-        public IntPtr SetAffinity(int processID, string formattedAffinity)
+        public IntPtr SetProcessAffinity(int processID, string formattedAffinity)
         {
             try
             {
@@ -268,7 +268,7 @@ namespace MabiMultiClientHelper.Helpers
 
         #endregion
 
-        public async Task Start()
+        public async Task StartThrottling()
         {
             var cancellationToken = cancellationTokenSource.Token;
 
@@ -283,7 +283,7 @@ namespace MabiMultiClientHelper.Helpers
             cancellationTokenSource = new CancellationTokenSource();
         }
 
-        public async Task Stop()
+        public async Task StopThrottling()
         {
             cancellationTokenSource.Cancel();
             while (throttleProcessPool.Count > 0)

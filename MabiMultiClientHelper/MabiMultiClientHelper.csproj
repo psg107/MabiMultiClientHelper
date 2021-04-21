@@ -94,6 +94,7 @@
     <Compile Include="Helpers\WinAPI.cs" />
     <Compile Include="Helpers\WindowHelper.cs" />
     <Compile Include="RunOneInstance.cs" />
+    <Compile Include="ThreadSafeList.cs" />
     <Compile Include="ValueConverters\BoolValueConverter.cs" />
     <Compile Include="ViewModels\Base\DelegateCommand.cs" />
     <Page Include="Resources\Styles.xaml">

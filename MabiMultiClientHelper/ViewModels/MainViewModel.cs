@@ -258,8 +258,8 @@ namespace MabiMultiClientHelper.ViewModels
                     if (this.SetAffinity)
                     {
                         var firstProcessID = this.MainClients.Concat(this.SubClients).First().PID;
-                        var affinity = processManager.GetAffinity(firstProcessID);
-                        var affinityCount = processManager.GetAffinityCount(firstProcessID);
+                        var affinity = processManager.GetProcessAffinity(firstProcessID);
+                        var affinityCount = processManager.GetProcessAffinityCount(firstProcessID);
                         var subClientAffinityCount = 2;
 
                         var mainAffinity = new string('0', subClientAffinityCount) + new string('1', affinityCount - subClientAffinityCount);
@@ -267,11 +267,11 @@ namespace MabiMultiClientHelper.ViewModels
 
                         foreach (var clientInfo in this.MainClients)
                         {
-                            processManager.SetAffinity(clientInfo.PID, mainAffinity);
+                            processManager.SetProcessAffinity(clientInfo.PID, mainAffinity);
                         }
                         foreach (var clientInfo in this.SubClients)
                         {
-                            processManager.SetAffinity(clientInfo.PID, subAffinity);
+                            processManager.SetProcessAffinity(clientInfo.PID, subAffinity);
                         }
                     }
 
@@ -283,7 +283,7 @@ namespace MabiMultiClientHelper.ViewModels
                         processManager.AddThrottleProcess(clientInfo.PID);
                     }
                     processManager.SuspendInterval = this.SuspendInterval;
-                    await processManager.Start();
+                    await processManager.StartThrottling();
                 });
             }
         }
@@ -314,21 +314,21 @@ namespace MabiMultiClientHelper.ViewModels
                         if (this.SetAffinity)
                         {
                             var firstProcessID = this.MainClients.Concat(this.SubClients).First().PID;
-                            var affinity = processManager.GetAffinity(firstProcessID);
-                            var affinityCount = processManager.GetAffinityCount(firstProcessID);
+                            var affinity = processManager.GetProcessAffinity(firstProcessID);
+                            var affinityCount = processManager.GetProcessAffinityCount(firstProcessID);
 
                             var defaultAffinity = new string('1', affinityCount);
 
                             foreach (var clientInfo in this.MainClients)
                             {
-                                processManager.SetAffinity(clientInfo.PID, defaultAffinity);
+                                processManager.SetProcessAffinity(clientInfo.PID, defaultAffinity);
                             }
                             foreach (var clientInfo in this.SubClients)
                             {
-                                processManager.SetAffinity(clientInfo.PID, defaultAffinity);
+                                processManager.SetProcessAffinity(clientInfo.PID, defaultAffinity);
                             }
                         }
-                        await processManager.Stop();
+                        await processManager.StopThrottling();
                     }
                     finally
                     {
