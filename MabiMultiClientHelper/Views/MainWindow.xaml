@@ -32,10 +32,22 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="50" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0" Text="{Binding PID}" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="0,0,5,0">
+                    <TextBlock.Style>
+                        <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MahApps.Styles.TextBlock}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsHiddenWindow}" Value="True">
+                                    <Setter Property="Text" Value="🙈" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
             </Grid>
         </DataTemplate>
         <Style x:Key="ListBoxItemStyle" TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource MahApps.Styles.ListBoxItem}">
@@ -43,12 +55,42 @@
             <Setter Property="ContextMenu">
                 <Setter.Value>
                     <ContextMenu Tag="{Binding RelativeSource={RelativeSource Mode=Self}, Path=PlacementTarget.DataContext}">
-                        <MenuItem Header="활성화" 
+                        <MenuItem Header="{Binding Name}" IsEnabled="False" IsCheckable="False" />
+
+                        <Separator />
+
+                        <MenuItem Header="맨 위로 활성화" 
                                   Command="{Binding PlacementTarget.Tag.ActivateWindowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                   CommandParameter="{Binding }" />
+
+                        <Separator />
+
+                        <MenuItem>
+                            <MenuItem.Style>
+                                <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource MahApps.Styles.MenuItem}">
+                                    <Setter Property="Header" Value="창 숨기기" />
+                                    <Setter Property="Command" Value="{Binding PlacementTarget.Tag.HideWindowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    <Setter Property="CommandParameter" Value="{Binding }" />
+
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding PlacementTarget.DataContext.IsHiddenWindow, RelativeSource={RelativeSource AncestorType=ContextMenu}}" Value="True">
+                                            <Setter Property="Header" Value="창 보이기" />
+                                            <Setter Property="Command" Value="{Binding PlacementTarget.Tag.ShowWindowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </MenuItem.Style>
+                        </MenuItem>
                     </ContextMenu>
                 </Setter.Value>
             </Setter>
+
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsHiddenWindow}" Value="True">
+                    <Setter Property="Background" Value="LightGray" />
+                    <Setter Property="Foreground" Value="White" />
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
         <h:BindingProxy x:Key="Proxy" Data="{Binding}" />
     </Window.Resources>
@@ -119,11 +161,15 @@
                          AllowDrop="{Binding Running, Converter={StaticResource BoolValueConverter}}" 
                          ItemContainerStyle="{StaticResource ListBoxItemStyle}" />
 
-                <Button Name="MenuButton" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Center" Content="?" Width="20" Height="20">
+                <Button Name="MenuButton" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Center" Content="+" Width="20" Height="20">
                     <Button.ContextMenu>
                         <ContextMenu x:Name="MainContextMenu">
                             <MenuItem Header="도움말" Click="MenuItem_Click" />
-                            <MenuItem Header="응답없음 복원시도" Command="{Binding Source={StaticResource Proxy}, Path=Data.RestoreAllClientCommand}" IsEnabled="{Binding Source={StaticResource Proxy}, Path=Data.Running, Converter={StaticResource BoolValueConverter}}" />
+                            <Separator />
+                            <MenuItem Header="모든 서브 클라이언트 숨기기" Command="{Binding Source={StaticResource Proxy}, Path=Data.HideAllClientCommand}" />
+                            <MenuItem Header="모든 클라이언트 보이기" Command="{Binding Source={StaticResource Proxy}, Path=Data.ShowAllClientCommand}" />
+                            <Separator />
+                            <MenuItem Header="클라이언트 응답없음 복원 시도" Command="{Binding Source={StaticResource Proxy}, Path=Data.RestoreAllClientCommand}" IsEnabled="{Binding Source={StaticResource Proxy}, Path=Data.Running, Converter={StaticResource BoolValueConverter}}" />
                         </ContextMenu>
                     </Button.ContextMenu>
 

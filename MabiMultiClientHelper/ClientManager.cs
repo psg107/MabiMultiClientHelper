@@ -15,7 +15,9 @@ namespace MabiMultiClientHelper
             var processes = Process.GetProcessesByName("Client")
                                    .Where(x => x.HandleCount != 0);
 
-            var clients = processes.Select(x => new ClientInfo
+            var clients = processes
+                .OrderBy(x => x.StartTime)
+                .Select(x => new ClientInfo
             {
                 Process = x,
                 PID = x.Id,

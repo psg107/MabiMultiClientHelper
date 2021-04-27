@@ -208,6 +208,11 @@ namespace MabiMultiClientHelper.ViewModels
             {
                 return new DelegateCommand<ClientInfo>((clientInfo) =>
                 {
+                    if (clientInfo.IsHiddenWindow)
+                    {
+                        WinAPI.ShowWindow(clientInfo.Handle, WinAPI.SW_SHOW);
+                        clientInfo.IsHiddenWindow = false;
+                    }
                     WinAPI.SetForegroundWindow(clientInfo.Process.MainWindowHandle);
                 });
             }
@@ -407,6 +412,7 @@ namespace MabiMultiClientHelper.ViewModels
                         foreach (var client in clients)
                         {
                             WinAPI.SetWindowText(client.Handle, "마비노기");
+                            WinAPI.ShowWindow(client.Handle, WinAPI.SW_SHOW);
                         }
 
                         var setting = new Setting
@@ -418,6 +424,84 @@ namespace MabiMultiClientHelper.ViewModels
                         var serializedSetting = JsonConvert.SerializeObject(setting);
                         var settingFileName = "Setting.json";
                         File.WriteAllText(settingFileName, serializedSetting);
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public DelegateCommand<ClientInfo> HideWindowCommand
+        {
+            get
+            {
+                return new DelegateCommand<ClientInfo>((clientInfo) =>
+                {
+                    if (clientInfo.IsHiddenWindow)
+                    {
+                        return;
+                    }
+
+                    WinAPI.ShowWindow(clientInfo.Handle, WinAPI.SW_HIDE);
+                    clientInfo.IsHiddenWindow = true;
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public DelegateCommand<ClientInfo> ShowWindowCommand
+        {
+            get
+            {
+                return new DelegateCommand<ClientInfo>((clientInfo) =>
+                {
+                    if (clientInfo.IsHiddenWindow == false)
+                    {
+                        return;
+                    }
+
+                    WinAPI.ShowWindow(clientInfo.Handle, WinAPI.SW_SHOW);
+                    clientInfo.IsHiddenWindow = false;
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public DelegateCommand HideAllClientCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+                {
+                    var clients = this.SubClients;
+                    foreach (var client in clients)
+                    {
+                        WinAPI.ShowWindow(client.Handle, WinAPI.SW_HIDE);
+                        client.IsHiddenWindow = true;
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public DelegateCommand ShowAllClientCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+                {
+                    var clients = this.MainClients.Concat(this.SubClients);
+                    foreach (var client in clients)
+                    {
+                        WinAPI.ShowWindow(client.Handle, WinAPI.SW_SHOW);
+                        client.IsHiddenWindow = false;
                     }
                 });
             }

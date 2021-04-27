@@ -7,6 +7,9 @@ namespace MabiMultiClientHelper.Helpers
 {
     public static class WinAPI
     {
+        public const int SW_HIDE = 0;
+        public const int SW_SHOW = 1;
+
         [DllImport("user32.dll")]
         public static extern bool SetWindowText(IntPtr hWnd, string text);
 
@@ -18,6 +21,9 @@ namespace MabiMultiClientHelper.Helpers
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         public static string GetActiveProcessFileName()
         {

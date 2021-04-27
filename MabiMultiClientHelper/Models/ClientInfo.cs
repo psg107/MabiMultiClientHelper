@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Prism.Mvvm;
+using System;
 using System.Diagnostics;
 
 namespace MabiMultiClientHelper.Models
 {
-    public class ClientInfo
+    public class ClientInfo : BindableBase
     {
         /// <summary>
         /// 
@@ -24,5 +25,16 @@ namespace MabiMultiClientHelper.Models
         /// 
         /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool IsHiddenWindow 
+        {
+            get => isHiddenWindow;
+            set => SetProperty(ref isHiddenWindow, value);
+        }
+
+        private bool isHiddenWindow = false;
     }
 }
