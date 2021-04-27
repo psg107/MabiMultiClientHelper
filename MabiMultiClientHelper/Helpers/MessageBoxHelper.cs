@@ -17,7 +17,7 @@ namespace MabiMultiClientHelper.Helpers
         {
             var owner = WindowHelper.GetWindowFromBindableObject(this.dataContext);
 
-            MessageBox.Show(owner, message, CAPTION);
+            MessageBox.Show(owner, message, CAPTION, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         public bool ShowQuestionMessage(string message)

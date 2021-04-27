@@ -1,0 +1,5 @@
+{
+	"SkipWhenSubClientActivated": true,
+	"ChangeClientAffinity": true,
+	"SuspendInterval" : 100
+}

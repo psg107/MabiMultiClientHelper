@@ -23,7 +23,7 @@ namespace MabiMultiClientHelper.Helpers
         /// <summary>
         /// 활성화중인 클라이언트 무시
         /// </summary>
-        public bool PassWhenActivate { get; set; }
+        public bool SkipWhenActivate { get; set; }
 
         /// <summary>
         /// 정지 간격
@@ -170,7 +170,7 @@ namespace MabiMultiClientHelper.Helpers
                         return;
                     }
 
-                    if (PassWhenActivate)
+                    if (SkipWhenActivate)
                     {
                         if (WinAPI.GetActiveProcessId() == processID)
                         {

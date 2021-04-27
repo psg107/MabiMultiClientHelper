@@ -5,11 +5,14 @@
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:local="clr-namespace:MabiMultiClientHelper"
                  xmlns:ap="clr-namespace:MabiMultiClientHelper.AttachedProperty"
+                 xmlns:sys="clr-namespace:System;assembly=mscorlib"
                  xmlns:m="clr-namespace:MabiMultiClientHelper.Models"
                  xmlns:vm="clr-namespace:MabiMultiClientHelper.ViewModels"
                  xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+                 xmlns:h="clr-namespace:MabiMultiClientHelper.Helpers"
                  xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
                  xmlns:cmd="http://www.galasoft.ch/mvvmlight"
+                 ShowActivated="True"
                  mc:Ignorable="d"
                  Title="마비노기 멀티 클라이언트 도우미"
                  WindowStartupLocation="CenterScreen"
@@ -43,19 +46,19 @@
                         <MenuItem Header="활성화" 
                                   Command="{Binding PlacementTarget.Tag.ActivateWindowCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                   CommandParameter="{Binding }" />
-
-                        <MenuItem Header="응답없음 복원시도" 
-                                  Command="{Binding PlacementTarget.Tag.RestoreClientCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                  CommandParameter="{Binding }" />
                     </ContextMenu>
                 </Setter.Value>
             </Setter>
         </Style>
+        <h:BindingProxy x:Key="Proxy" Data="{Binding}" />
     </Window.Resources>
 
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
             <cmd:EventToCommand Command="{Binding LoadCommand}" />
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Closing">
+            <cmd:EventToCommand Command="{Binding CloseAppCommand}" PassEventArgsToCommand="True" />
         </i:EventTrigger>
     </i:Interaction.Triggers>
 
@@ -116,11 +119,32 @@
                          AllowDrop="{Binding Running, Converter={StaticResource BoolValueConverter}}" 
                          ItemContainerStyle="{StaticResource ListBoxItemStyle}" />
 
-                <ToggleButton x:Name="Btn" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Center" Width="20" Height="20" Padding="0" Margin="0" IsHitTestVisible="{Binding ElementName=Popup, Path=IsOpen, Mode=OneWay, Converter={StaticResource BoolValueConverter}}">
-                    <TextBlock Text="?"/>
-                </ToggleButton>
+                <Button Name="MenuButton" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Center" Content="?" Width="20" Height="20">
+                    <Button.ContextMenu>
+                        <ContextMenu x:Name="MainContextMenu">
+                            <MenuItem Header="도움말" Click="MenuItem_Click" />
+                            <MenuItem Header="응답없음 복원시도" Command="{Binding Source={StaticResource Proxy}, Path=Data.RestoreAllClientCommand}" IsEnabled="{Binding Source={StaticResource Proxy}, Path=Data.Running, Converter={StaticResource BoolValueConverter}}" />
+                        </ContextMenu>
+                    </Button.ContextMenu>
 
-                <Popup IsOpen="{Binding IsChecked, ElementName=Btn}" StaysOpen="False" PlacementTarget="{Binding ElementName=Btn}" Placement="Bottom" FocusVisualStyle="{x:Null}">
+                    <Button.Triggers>
+                        <EventTrigger SourceName="MenuButton" RoutedEvent="Button.Click">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="MainContextMenu" Storyboard.TargetProperty="(ContextMenu.IsOpen)">
+                                        <DiscreteObjectKeyFrame KeyTime="0:0:0">
+                                            <DiscreteObjectKeyFrame.Value>
+                                                <sys:Boolean>True</sys:Boolean>
+                                            </DiscreteObjectKeyFrame.Value>
+                                        </DiscreteObjectKeyFrame>
+                                    </ObjectAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Button.Triggers>
+                </Button>
+
+                <Popup x:Name="PopupMenu" StaysOpen="False" PlacementTarget="{Binding ElementName=MenuButton}" Placement="Bottom" FocusVisualStyle="{x:Null}">
                     <Border BorderBrush="Black" BorderThickness="1" Background="White" Padding="10">
                         <TextBlock TextWrapping="Wrap">
                             마비노기 멀티 클라이언트를 쉽게 관리하기 위한 프로그램입니다. <LineBreak />
@@ -128,7 +152,7 @@
                             [사용방법]<LineBreak />
                             1. 스캔 버튼을 눌러 현재 실행중인 마비노기 클라이언트를 스캔한다.<LineBreak />
                             2. '서브 클라이언트'에서 본캐릭터가 접속중인 클라이언트를 찾아 '메인 클라이언트'로 옮긴다.<LineBreak />
-                            3. 작동 버튼을 누르면 약 5초 후 작동한다.<LineBreak />
+                            3. 작동 버튼을 누른다.<LineBreak />
                             <LineBreak />
                             [추가 기능]<LineBreak />
                             ScrollLock : 멀티 클라이언트 도우미 창 활성화<LineBreak />
@@ -154,10 +178,10 @@
                 </Grid.RowDefinitions>
             
                 <!--passActivateWindow-->
-                <CheckBox Grid.Column="0" Grid.Row="0" Content="활성화중인 서브 클라이언트 CPU 제한 해제" IsChecked="{Binding PassWhenClientActivated}" Margin="2" HorizontalAlignment="Left" IsEnabled="{Binding Running, Converter={StaticResource BoolValueConverter}}" />
+                <CheckBox Grid.Column="0" Grid.Row="0" Content="활성화중인 서브 클라이언트 CPU 제한 해제" IsChecked="{Binding SkipWhenSubClientActivated}" Margin="2" HorizontalAlignment="Left" IsEnabled="{Binding Running, Converter={StaticResource BoolValueConverter}}" />
 
                 <!--affinity-->
-                <CheckBox Grid.Column="0" Grid.Row="1" Content="클라이언트 선호도 변경" IsChecked="{Binding SetAffinity}" Margin="2" HorizontalAlignment="Left" IsEnabled="{Binding Running, Converter={StaticResource BoolValueConverter}}" />
+                <CheckBox Grid.Column="0" Grid.Row="1" Content="클라이언트 선호도 변경" IsChecked="{Binding ChangeClientAffinity}" Margin="2" HorizontalAlignment="Left" IsEnabled="{Binding Running, Converter={StaticResource BoolValueConverter}}" />
 
                 <!--slider-->
                 <Grid Grid.Column="0" Grid.Row="2" ToolTip="값이 높을수록 느려짐" Margin="2,0,0,2">

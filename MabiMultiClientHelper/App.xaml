@@ -22,6 +22,7 @@
 
             <!--converters-->
             <vc:BoolValueConverter x:Key="BoolValueConverter" />
+            <vc:TestValueConverter x:Key="TestValueConverter" />
         </ResourceDictionary>
     </Application.Resources>
     

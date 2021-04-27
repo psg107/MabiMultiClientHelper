@@ -1,9 +1,13 @@
 ﻿using GalaSoft.MvvmLight;
 using MabiMultiClientHelper.Helpers;
 using MabiMultiClientHelper.Models;
+using Newtonsoft.Json;
+using Prism.Commands;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace MabiMultiClientHelper.ViewModels
@@ -58,19 +62,19 @@ namespace MabiMultiClientHelper.ViewModels
         /// <summary>
         /// true: 활성화 중에는 CPU 제한 해제, false: 작동 중에는 항상 서브 클라이언트 CPU 제한
         /// </summary>
-        public bool PassWhenClientActivated
+        public bool SkipWhenSubClientActivated
         {
-            get => passWhenClientActivated;
-            set => Set(ref passWhenClientActivated, value);
+            get => skipWhenSubClientActivated;
+            set => Set(ref skipWhenSubClientActivated, value);
         }
 
         /// <summary>
         /// cpu선호도 설정
         /// </summary>
-        public bool SetAffinity
+        public bool ChangeClientAffinity
         {
-            get => setAffinity;
-            set => Set(ref setAffinity, value);
+            get => changeClientAffinity;
+            set => Set(ref changeClientAffinity, value);
         }
 
         /// <summary>
@@ -94,8 +98,8 @@ namespace MabiMultiClientHelper.ViewModels
         private ObservableCollection<ClientInfo> subClients;
         private bool running;
         private bool stopping;
-        private bool passWhenClientActivated;
-        private bool setAffinity;
+        private bool skipWhenSubClientActivated;
+        private bool changeClientAffinity;
         private int suspendInterval;
 
         #endregion
@@ -110,10 +114,43 @@ namespace MabiMultiClientHelper.ViewModels
             messageBoxHelper = new MessageBoxHelper(this);
             clientManager = new ClientManager();
             processManager = new ProcessManager();
-
-            passWhenClientActivated = true;
-            SetAffinity = true;
+            
+            //기본값
+            SkipWhenSubClientActivated = true;
+            ChangeClientAffinity = true;
             SuspendInterval = 100;
+
+            var settingFileName = "Setting.json";
+            if (File.Exists(settingFileName))
+            {
+                var serializedSettingFile = File.ReadAllText(settingFileName);
+                try
+                {
+                    var setting = JsonConvert.DeserializeObject<Setting>(serializedSettingFile);
+                    if (setting != null)
+                    {
+                        if (setting.SuspendInterval < 10 || setting.SuspendInterval > 100)
+                        {
+                            setting.SuspendInterval = 100;
+                        }
+
+                        this.SkipWhenSubClientActivated = setting.SkipWhenSubClientActivated;
+                        this.ChangeClientAffinity = setting.ChangeClientAffinity;
+                        this.SuspendInterval = setting.SuspendInterval;
+                    }
+                }
+                catch (System.Exception)
+                {
+                    var setting = new Setting
+                    {
+                        ChangeClientAffinity = this.ChangeClientAffinity,
+                        SkipWhenSubClientActivated = this.SkipWhenSubClientActivated,
+                        SuspendInterval = this.SuspendInterval
+                    };
+                    var serializedSetting = JsonConvert.SerializeObject(setting);
+                    File.WriteAllText(settingFileName, serializedSetting);
+                }
+            }
         }
 
         #endregion
@@ -127,9 +164,9 @@ namespace MabiMultiClientHelper.ViewModels
         {
             get
             {
-                return new DelegateCommand((parameter) =>
+                return new DelegateCommand(() =>
                 {
-                    ScanCommand.Execute(null);
+                    ScanCommand.Execute();
                 });
             }
         }
@@ -141,7 +178,7 @@ namespace MabiMultiClientHelper.ViewModels
         {
             get
             {
-                return new DelegateCommand((parameter) =>
+                return new DelegateCommand(() =>
                 {
                     if (Running)
                     {
@@ -165,16 +202,13 @@ namespace MabiMultiClientHelper.ViewModels
         /// <summary>
         /// 
         /// </summary>
-        public DelegateCommand ActivateWindowCommand
+        public DelegateCommand<ClientInfo> ActivateWindowCommand
         {
             get
             {
-                return new DelegateCommand((parameter) =>
+                return new DelegateCommand<ClientInfo>((clientInfo) =>
                 {
-                    if (parameter is ClientInfo clientInfo)
-                    {
-                        WinAPI.SetForegroundWindow(clientInfo.Process.MainWindowHandle);
-                    }
+                    WinAPI.SetForegroundWindow(clientInfo.Process.MainWindowHandle);
                 });
             }
         }
@@ -182,15 +216,27 @@ namespace MabiMultiClientHelper.ViewModels
         /// <summary>
         /// 도우미 강제종료로 인해 클라이언트 응답없음이 된 경우 복원 시도
         /// </summary>
-        public DelegateCommand RestoreClientCommand
+        public DelegateCommand RestoreAllClientCommand
         {
             get
             {
-                return new DelegateCommand((parameter) =>
+                return new DelegateCommand(() =>
                 {
-                    if (parameter is ClientInfo clientInfo)
+                    if (Running)
                     {
-                        processManager.TryResumeProcess(clientInfo.PID);
+                        return;
+                    }
+
+                    var result = messageBoxHelper.ShowQuestionMessage("클라이언트 응답없음 복원을 시도하시겠습니까?");
+                    if (result)
+                    {
+                        var clients = this.MainClients.Concat(this.SubClients);
+                        foreach (var client in clients)
+                        {
+                            processManager.TryResumeProcess(client.PID);
+                        }
+
+                        messageBoxHelper.ShowMessage("복원 시도 완료");
                     }
                 });
             }
@@ -203,7 +249,7 @@ namespace MabiMultiClientHelper.ViewModels
         {
             get
             {
-                return new DelegateCommand(async (parameter) =>
+                return new DelegateCommand(async () =>
                 {
                     if (Running)
                     {
@@ -222,7 +268,7 @@ namespace MabiMultiClientHelper.ViewModels
                             messageBoxHelper.ShowMessage($"" +
                                 $"PID : {client.PID}를 찾는 중 오류가 발생했습니다.\n" +
                                 $"클라이언트를 다시 스캔합니다.");
-                            ScanCommand.Execute(null);
+                            ScanCommand.Execute();
                             return;
                         }
                     }
@@ -255,7 +301,7 @@ namespace MabiMultiClientHelper.ViewModels
                     Running = true;
 
                     //프로세스 선호도 설정
-                    if (this.SetAffinity)
+                    if (this.ChangeClientAffinity)
                     {
                         var firstProcessID = this.MainClients.Concat(this.SubClients).First().PID;
                         var affinity = processManager.GetProcessAffinity(firstProcessID);
@@ -276,7 +322,7 @@ namespace MabiMultiClientHelper.ViewModels
                     }
 
                     //프로세스 cpu 제한
-                    processManager.PassWhenActivate = this.passWhenClientActivated;
+                    processManager.SkipWhenActivate = this.skipWhenSubClientActivated;
                     processManager.ClearThrottleProcesses();
                     foreach (var clientInfo in this.SubClients)
                     {
@@ -295,7 +341,7 @@ namespace MabiMultiClientHelper.ViewModels
         {
             get
             {
-                return new DelegateCommand(async (parameter) =>
+                return new DelegateCommand(async () =>
                 {
                     if (!Running)
                     {
@@ -311,7 +357,7 @@ namespace MabiMultiClientHelper.ViewModels
                         Stopping = true;
 
                         //프로세스 선호도 설정
-                        if (this.SetAffinity)
+                        if (this.ChangeClientAffinity)
                         {
                             var firstProcessID = this.MainClients.Concat(this.SubClients).First().PID;
                             var affinity = processManager.GetProcessAffinity(firstProcessID);
@@ -334,6 +380,44 @@ namespace MabiMultiClientHelper.ViewModels
                     {
                         Running = false;
                         Stopping = false;
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public DelegateCommand<CancelEventArgs> CloseAppCommand
+        {
+            get
+            {
+                return new DelegateCommand<CancelEventArgs>((e) =>
+                {
+                    Keylogger.UninstallHook();
+
+                    if (this.Running)
+                    {
+                        StopCommand.Execute();
+                        e.Cancel = true;
+                    }
+                    else
+                    {
+                        var clients = this.MainClients.Concat(this.SubClients);
+                        foreach (var client in clients)
+                        {
+                            WinAPI.SetWindowText(client.Handle, "마비노기");
+                        }
+
+                        var setting = new Setting
+                        {
+                            ChangeClientAffinity = this.ChangeClientAffinity,
+                            SkipWhenSubClientActivated = this.SkipWhenSubClientActivated,
+                            SuspendInterval = this.SuspendInterval
+                        };
+                        var serializedSetting = JsonConvert.SerializeObject(setting);
+                        var settingFileName = "Setting.json";
+                        File.WriteAllText(settingFileName, serializedSetting);
                     }
                 });
             }

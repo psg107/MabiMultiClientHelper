@@ -59,6 +59,12 @@
     <Reference Include="Microsoft.Xaml.Behaviors, Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Xaml.Behaviors.Wpf.1.1.19\lib\net45\Microsoft.Xaml.Behaviors.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Prism, Version=8.0.0.1909, Culture=neutral, PublicKeyToken=40ee6c3a2184dc59, processorArchitecture=MSIL">
+      <HintPath>..\packages\Prism.Core.8.0.0.1909\lib\net47\Prism.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
@@ -87,6 +93,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="AttachedProperty\DragAndDrop.cs" />
+    <Compile Include="Helpers\BindingProxy.cs" />
     <Compile Include="Helpers\Keylogger.cs" />
     <Compile Include="Helpers\MessageBoxHelper.cs" />
     <Compile Include="Helpers\ProcessManager.cs" />
@@ -94,9 +101,10 @@
     <Compile Include="Helpers\WinAPI.cs" />
     <Compile Include="Helpers\WindowHelper.cs" />
     <Compile Include="RunOneInstance.cs" />
+    <Compile Include="Setting.cs" />
     <Compile Include="ThreadSafeList.cs" />
+    <Compile Include="ValueConverters\TestValueConverter.cs" />
     <Compile Include="ValueConverters\BoolValueConverter.cs" />
-    <Compile Include="ViewModels\Base\DelegateCommand.cs" />
     <Page Include="Resources\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -140,6 +148,9 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="Setting.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -148,13 +159,19 @@
     <Resource Include="icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="DllsAsResource\CommonServiceLocator.dll" />
-    <EmbeddedResource Include="DllsAsResource\ControlzEx.dll" />
-    <EmbeddedResource Include="DllsAsResource\GalaSoft.MvvmLight.dll" />
-    <EmbeddedResource Include="DllsAsResource\GalaSoft.MvvmLight.Extras.dll" />
-    <EmbeddedResource Include="DllsAsResource\GalaSoft.MvvmLight.Platform.dll" />
-    <EmbeddedResource Include="DllsAsResource\Microsoft.Xaml.Behaviors.dll" />
-    <EmbeddedResource Include="DllsAsResource\System.Windows.Interactivity.dll" />
+    <EmbeddedResource Include="_Libs\CommonServiceLocator.dll" />
+    <EmbeddedResource Include="_Libs\ControlzEx.dll" />
+    <EmbeddedResource Include="_Libs\GalaSoft.MvvmLight.dll" />
+    <EmbeddedResource Include="_Libs\GalaSoft.MvvmLight.Extras.dll" />
+    <EmbeddedResource Include="_Libs\GalaSoft.MvvmLight.Platform.dll" />
+    <EmbeddedResource Include="_Libs\Microsoft.Xaml.Behaviors.dll" />
+    <EmbeddedResource Include="_Libs\System.Windows.Interactivity.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_Libs\Newtonsoft.Json.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_Libs\Prism.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

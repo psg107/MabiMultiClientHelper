@@ -1,11 +1,14 @@
 ﻿using MabiMultiClientHelper.Helpers;
 using MabiMultiClientHelper.ViewModels;
 using MahApps.Metro.Controls;
+using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Interop;
 
@@ -38,27 +41,9 @@ namespace MabiMultiClientHelper.Views
             };
         }
 
-#warning 코드 정리 필요
-        protected override void OnClosing(CancelEventArgs e)
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
-            Keylogger.UninstallHook();
-
-            if (this.DataContext is MainViewModel vm)
-            {
-                if (vm.Running)
-                {
-                    vm.StopCommand.Execute(null);
-                    e.Cancel = true;
-                }
-                else
-                {
-                    var clients = vm.MainClients.Concat(vm.SubClients);
-                    foreach (var client in clients)
-                    {
-                        WinAPI.SetWindowText(client.Handle, "마비노기");
-                    }
-                }
-            }
+            PopupMenu.IsOpen = true;
         }
     }
 }
