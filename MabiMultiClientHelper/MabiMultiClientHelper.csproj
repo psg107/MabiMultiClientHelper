@@ -147,5 +147,14 @@
   <ItemGroup>
     <Resource Include="icon.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DllsAsResource\CommonServiceLocator.dll" />
+    <EmbeddedResource Include="DllsAsResource\ControlzEx.dll" />
+    <EmbeddedResource Include="DllsAsResource\GalaSoft.MvvmLight.dll" />
+    <EmbeddedResource Include="DllsAsResource\GalaSoft.MvvmLight.Extras.dll" />
+    <EmbeddedResource Include="DllsAsResource\GalaSoft.MvvmLight.Platform.dll" />
+    <EmbeddedResource Include="DllsAsResource\Microsoft.Xaml.Behaviors.dll" />
+    <EmbeddedResource Include="DllsAsResource\System.Windows.Interactivity.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
