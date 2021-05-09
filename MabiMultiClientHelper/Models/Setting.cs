@@ -1,4 +1,6 @@
-﻿namespace MabiMultiClientHelper
+﻿using MahApps.Metro.Controls;
+
+namespace MabiMultiClientHelper
 {
     public class Setting
     {
@@ -16,5 +18,20 @@
         /// 정지간격
         /// </summary>
         public int SuspendInterval { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public HotKey ActiveMultiClientHelperHotKey { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public HotKey ActiveNextMainClientHotKey { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public HotKey ActiveNextSubClientHotKey { get; set; }
     }
 }

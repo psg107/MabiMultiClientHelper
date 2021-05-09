@@ -28,7 +28,7 @@ namespace MabiMultiClientHelper.Helpers
         /// <summary>
         /// 정지 간격
         /// </summary>
-        public int SuspendInterval { get; set; } = 100;
+        public int SuspendInterval { get; set; } = 200;
 
         #region 스레드 열기 - OpenThread(threadAccess, inheritHandle, threadID)
 
@@ -187,7 +187,7 @@ namespace MabiMultiClientHelper.Helpers
                     ResumeProcess(processID);
 
 #warning 하드코딩;;
-                    Thread.Sleep(100 - this.SuspendInterval);
+                    Thread.Sleep(200 - this.SuspendInterval);
                 }
             }
             catch (Exception ex)

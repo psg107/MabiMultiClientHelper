@@ -1,14 +1,15 @@
 ﻿using GalaSoft.MvvmLight;
+using MabiMultiClientHelper.Helpers;
 using System.Windows;
 
-namespace MabiMultiClientHelper.Helpers
+namespace MabiMultiClientHelper.Services
 {
-    public class MessageBoxHelper
+    public class MessageBoxService
     {
         private const string CAPTION = "마비노기 멀티 클라이언트 도우미";
         private readonly ViewModelBase dataContext;
 
-        public MessageBoxHelper(ViewModelBase dataContext)
+        public MessageBoxService(ViewModelBase dataContext)
         {
             this.dataContext = dataContext;
         }

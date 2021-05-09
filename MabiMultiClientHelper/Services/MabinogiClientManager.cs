@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace MabiMultiClientHelper
+namespace MabiMultiClientHelper.Services
 {
     /// <summary>
     /// 
     /// </summary>
-    public class ClientManager
+    public class MabinogiClientManager
     {
         public List<ClientInfo> Scan()
         {

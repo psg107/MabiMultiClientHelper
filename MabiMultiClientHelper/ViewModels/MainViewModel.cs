@@ -1,6 +1,8 @@
 ﻿using GalaSoft.MvvmLight;
 using MabiMultiClientHelper.Helpers;
 using MabiMultiClientHelper.Models;
+using MabiMultiClientHelper.Services;
+using MabiMultiClientHelper.Views;
 using Newtonsoft.Json;
 using Prism.Commands;
 using System.Collections.Generic;
@@ -19,8 +21,9 @@ namespace MabiMultiClientHelper.ViewModels
     {
         #region property
 
-        private readonly MessageBoxHelper messageBoxHelper;
-        private readonly ClientManager clientManager;
+        private readonly MessageBoxService messageBoxService;
+        private readonly PopupWindowService popupWindowService;
+        private readonly MabinogiClientManager clientManager;
         private readonly ProcessManager processManager;
 
         /// <summary>
@@ -39,6 +42,24 @@ namespace MabiMultiClientHelper.ViewModels
         {
             get => subClients;
             set => Set(ref subClients, value);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ClientInfo SelectedMainClient 
+        {
+            get => selectedMainClient;
+            set => Set(ref selectedMainClient, value);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ClientInfo SelectedSubClient 
+        {
+            get => selectedSubClient;
+            set => Set(ref selectedSubClient, value);
         }
 
         /// <summary>
@@ -96,6 +117,8 @@ namespace MabiMultiClientHelper.ViewModels
 
         private ObservableCollection<ClientInfo> mainClients;
         private ObservableCollection<ClientInfo> subClients;
+        private ClientInfo selectedMainClient;
+        private ClientInfo selectedSubClient;
         private bool running;
         private bool stopping;
         private bool skipWhenSubClientActivated;
@@ -111,46 +134,16 @@ namespace MabiMultiClientHelper.ViewModels
             MainClients = new ObservableCollection<ClientInfo>();
             SubClients = new ObservableCollection<ClientInfo>();
 
-            messageBoxHelper = new MessageBoxHelper(this);
-            clientManager = new ClientManager();
+            messageBoxService = new MessageBoxService(this);
+            popupWindowService = new PopupWindowService(this);
+            clientManager = new MabinogiClientManager();
             processManager = new ProcessManager();
-            
-            //기본값
-            SkipWhenSubClientActivated = true;
-            ChangeClientAffinity = true;
-            SuspendInterval = 100;
 
-            var settingFileName = "Setting.json";
-            if (File.Exists(settingFileName))
-            {
-                var serializedSettingFile = File.ReadAllText(settingFileName);
-                try
-                {
-                    var setting = JsonConvert.DeserializeObject<Setting>(serializedSettingFile);
-                    if (setting != null)
-                    {
-                        if (setting.SuspendInterval < 10 || setting.SuspendInterval > 100)
-                        {
-                            setting.SuspendInterval = 100;
-                        }
+            var setting = SettingManager.Instance.LoadSetting();
 
-                        this.SkipWhenSubClientActivated = setting.SkipWhenSubClientActivated;
-                        this.ChangeClientAffinity = setting.ChangeClientAffinity;
-                        this.SuspendInterval = setting.SuspendInterval;
-                    }
-                }
-                catch (System.Exception)
-                {
-                    var setting = new Setting
-                    {
-                        ChangeClientAffinity = this.ChangeClientAffinity,
-                        SkipWhenSubClientActivated = this.SkipWhenSubClientActivated,
-                        SuspendInterval = this.SuspendInterval
-                    };
-                    var serializedSetting = JsonConvert.SerializeObject(setting);
-                    File.WriteAllText(settingFileName, serializedSetting);
-                }
-            }
+            this.SkipWhenSubClientActivated = setting.SkipWhenSubClientActivated;
+            this.ChangeClientAffinity = setting.ChangeClientAffinity;
+            this.SuspendInterval = setting.SuspendInterval;
         }
 
         #endregion
@@ -185,6 +178,8 @@ namespace MabiMultiClientHelper.ViewModels
                         return;
                     }
 
+                    ShowAllClientCommand.Execute();
+
                     this.MainClients.Clear();
                     this.SubClients.Clear();
 
@@ -213,7 +208,7 @@ namespace MabiMultiClientHelper.ViewModels
                         WinAPI.ShowWindow(clientInfo.Handle, WinAPI.SW_SHOW);
                         clientInfo.IsHiddenWindow = false;
                     }
-                    WinAPI.SetForegroundWindow(clientInfo.Process.MainWindowHandle);
+                    WinAPI.ForceForegroundWindow(clientInfo.Process.MainWindowHandle);
                 });
             }
         }
@@ -232,7 +227,7 @@ namespace MabiMultiClientHelper.ViewModels
                         return;
                     }
 
-                    var result = messageBoxHelper.ShowQuestionMessage("클라이언트 응답없음 복원을 시도하시겠습니까?");
+                    var result = messageBoxService.ShowQuestionMessage("클라이언트 응답없음 복원을 시도하시겠습니까?");
                     if (result)
                     {
                         var clients = this.MainClients.Concat(this.SubClients);
@@ -241,7 +236,7 @@ namespace MabiMultiClientHelper.ViewModels
                             processManager.TryResumeProcess(client.PID);
                         }
 
-                        messageBoxHelper.ShowMessage("복원 시도 완료");
+                        messageBoxService.ShowMessage("복원 시도 완료");
                     }
                 });
             }
@@ -270,7 +265,7 @@ namespace MabiMultiClientHelper.ViewModels
                         }
                         catch (System.Exception)
                         {
-                            messageBoxHelper.ShowMessage($"" +
+                            messageBoxService.ShowMessage($"" +
                                 $"PID : {client.PID}를 찾는 중 오류가 발생했습니다.\n" +
                                 $"클라이언트를 다시 스캔합니다.");
                             ScanCommand.Execute();
@@ -291,7 +286,7 @@ namespace MabiMultiClientHelper.ViewModels
 
                     if (warnings.Count > 0)
                     {
-                        var result = messageBoxHelper.ShowQuestionMessage($"" +
+                        var result = messageBoxService.ShowQuestionMessage($"" +
                             $"아래와 같은 문제가 있습니다.\n" +
                             $"계속 실행하시겠습니까?\n" +
                             $"\n" +
@@ -415,15 +410,11 @@ namespace MabiMultiClientHelper.ViewModels
                             WinAPI.ShowWindow(client.Handle, WinAPI.SW_SHOW);
                         }
 
-                        var setting = new Setting
-                        {
-                            ChangeClientAffinity = this.ChangeClientAffinity,
-                            SkipWhenSubClientActivated = this.SkipWhenSubClientActivated,
-                            SuspendInterval = this.SuspendInterval
-                        };
-                        var serializedSetting = JsonConvert.SerializeObject(setting);
-                        var settingFileName = "Setting.json";
-                        File.WriteAllText(settingFileName, serializedSetting);
+                        var setting = SettingManager.Instance.LoadSetting();
+                        setting.ChangeClientAffinity = this.ChangeClientAffinity;
+                        setting.SkipWhenSubClientActivated = this.SkipWhenSubClientActivated;
+                        setting.SuspendInterval = this.SuspendInterval;
+                        SettingManager.Instance.SaveSetting(setting);
                     }
                 });
             }
@@ -503,6 +494,78 @@ namespace MabiMultiClientHelper.ViewModels
                         WinAPI.ShowWindow(client.Handle, WinAPI.SW_SHOW);
                         client.IsHiddenWindow = false;
                     }
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public DelegateCommand ShowSettingWindowCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+                {
+                    popupWindowService.ShowPopup<SettingWindow>();
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public DelegateCommand ActiveNextMainClientCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+                {
+                    if (SelectedMainClient == null)
+                    {
+                        SelectedMainClient = this.MainClients.FirstOrDefault();
+                    }
+                    if (SelectedMainClient == null)
+                    {
+                        return;
+                    }
+
+                    var idx = this.MainClients.IndexOf(SelectedMainClient);
+                    var nextidx = (idx + 1) % this.MainClients.Count;
+
+                    var clientInfo = this.MainClients[nextidx];
+                    this.ActivateWindowCommand.Execute(clientInfo);
+
+                    SelectedMainClient = clientInfo;
+                });
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public DelegateCommand ActiveNextSubClientCommand
+        {
+            get
+            {
+                return new DelegateCommand(() =>
+                {
+                    if (SelectedSubClient == null)
+                    {
+                        SelectedSubClient = this.SubClients.FirstOrDefault();
+                    }
+                    if (SelectedMainClient == null)
+                    {
+                        return;
+                    }
+
+                    var idx = this.SubClients.IndexOf(SelectedSubClient);
+                    var nextidx = (idx + 1) % this.SubClients.Count;
+
+                    var clientInfo = this.SubClients[nextidx];
+                    this.ActivateWindowCommand.Execute(clientInfo);
+
+                    SelectedSubClient = clientInfo;
                 });
             }
         }

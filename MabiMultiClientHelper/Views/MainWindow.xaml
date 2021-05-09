@@ -18,7 +18,7 @@
                  WindowStartupLocation="CenterScreen"
                  Width="350"
                  Height="300"
-                 MinWidth="300"
+                 MinWidth="350"
                  MinHeight="250"
                  Name="Win">
 
@@ -139,6 +139,7 @@
                 <TextBlock Grid.Column="0" Grid.Row="0" Text="메인 클라이언트" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="0,0,0,2" />
                 <ListBox Grid.Column="0" 
                          Grid.Row="1" 
+                         SelectedItem="{Binding SelectedMainClient}"
                          ItemsSource="{Binding MainClients}" 
                          ItemTemplate="{StaticResource ListBoxClientInfoDataTemplate}" 
                          BorderBrush="#EEE"
@@ -152,6 +153,7 @@
                 <TextBlock Grid.Column="1" Grid.Row="0" Text="서브 클라이언트" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="0,0,0,2" />
                 <ListBox Grid.Column="1" 
                          Grid.Row="1" 
+                         SelectedItem="{Binding SelectedSubClient}"
                          ItemsSource="{Binding SubClients}" 
                          ItemTemplate="{StaticResource ListBoxClientInfoDataTemplate}" 
                          BorderBrush="#EEE"
@@ -161,34 +163,44 @@
                          AllowDrop="{Binding Running, Converter={StaticResource BoolValueConverter}}" 
                          ItemContainerStyle="{StaticResource ListBoxItemStyle}" />
 
-                <Button Name="MenuButton" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Center" Content="+" Width="20" Height="20">
-                    <Button.ContextMenu>
-                        <ContextMenu x:Name="MainContextMenu">
-                            <MenuItem Header="도움말" Click="MenuItem_Click" />
-                            <Separator />
-                            <MenuItem Header="모든 서브 클라이언트 숨기기" Command="{Binding Source={StaticResource Proxy}, Path=Data.HideAllClientCommand}" />
-                            <MenuItem Header="모든 클라이언트 보이기" Command="{Binding Source={StaticResource Proxy}, Path=Data.ShowAllClientCommand}" />
-                            <Separator />
-                            <MenuItem Header="클라이언트 응답없음 복원 시도" Command="{Binding Source={StaticResource Proxy}, Path=Data.RestoreAllClientCommand}" IsEnabled="{Binding Source={StaticResource Proxy}, Path=Data.Running, Converter={StaticResource BoolValueConverter}}" />
-                        </ContextMenu>
-                    </Button.ContextMenu>
+                <!--우측 상단 버튼-->
+                <Grid Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    
+                    <Button Name="MenuButton" Grid.Column="0" Content="+" Width="20" Height="20" FocusVisualStyle="{x:Null}">
+                        <Button.ContextMenu>
+                            <ContextMenu x:Name="MainContextMenu">
+                                <MenuItem Header="도움말" Click="MenuItem_Click" />
+                                <Separator />
+                                <MenuItem Header="모든 서브 클라이언트 숨기기" Command="{Binding Source={StaticResource Proxy}, Path=Data.HideAllClientCommand}" />
+                                <MenuItem Header="모든 클라이언트 보이기" Command="{Binding Source={StaticResource Proxy}, Path=Data.ShowAllClientCommand}" />
+                                <Separator />
+                                <MenuItem Header="클라이언트 응답없음 복원 시도" Command="{Binding Source={StaticResource Proxy}, Path=Data.RestoreAllClientCommand}" IsEnabled="{Binding Source={StaticResource Proxy}, Path=Data.Running, Converter={StaticResource BoolValueConverter}}" />
+                            </ContextMenu>
+                        </Button.ContextMenu>
 
-                    <Button.Triggers>
-                        <EventTrigger SourceName="MenuButton" RoutedEvent="Button.Click">
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="MainContextMenu" Storyboard.TargetProperty="(ContextMenu.IsOpen)">
-                                        <DiscreteObjectKeyFrame KeyTime="0:0:0">
-                                            <DiscreteObjectKeyFrame.Value>
-                                                <sys:Boolean>True</sys:Boolean>
-                                            </DiscreteObjectKeyFrame.Value>
-                                        </DiscreteObjectKeyFrame>
-                                    </ObjectAnimationUsingKeyFrames>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                    </Button.Triggers>
-                </Button>
+                        <Button.Triggers>
+                            <EventTrigger SourceName="MenuButton" RoutedEvent="Button.Click">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="MainContextMenu" Storyboard.TargetProperty="(ContextMenu.IsOpen)">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <sys:Boolean>True</sys:Boolean>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Button.Triggers>
+                    </Button>
+
+                    <Button Grid.Column="1" Content="⚙️" Width="20" Height="20" Padding="0" FocusVisualStyle="{x:Null}" Command="{Binding ShowSettingWindowCommand}" />
+                </Grid>
 
                 <Popup x:Name="PopupMenu" StaysOpen="False" PlacementTarget="{Binding ElementName=MenuButton}" Placement="Bottom" FocusVisualStyle="{x:Null}">
                     <Border BorderBrush="Black" BorderThickness="1" Background="White" Padding="10">
@@ -238,7 +250,7 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Column="0" Text="정지간격(ms) : " VerticalAlignment="Center" />
-                    <Slider x:Name="ProcessSlider" Grid.Column="1" Minimum="10" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding SuspendInterval}" FocusVisualStyle="{x:Null}" />
+                    <Slider x:Name="ProcessSlider" Grid.Column="1" Minimum="10" Maximum="200" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding SuspendInterval}" FocusVisualStyle="{x:Null}" />
                     <TextBlock Grid.Column="2" Text="{Binding ElementName=ProcessSlider, Path=Value}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0" />
                 </Grid>
 

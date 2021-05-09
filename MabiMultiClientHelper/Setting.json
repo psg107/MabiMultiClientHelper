@@ -1,5 +1,17 @@
 {
 	"SkipWhenSubClientActivated": true,
 	"ChangeClientAffinity": true,
-	"SuspendInterval" : 100
+	"SuspendInterval": 100,
+	"ActiveMultiClientHelperHotKey": {
+		"Key": 115,
+		"ModifierKeys": 0
+	},
+	"ActiveNextMainClientHotKey": {
+		"Key": 19,
+		"ModifierKeys": 4
+	},
+	"ActiveNextSubClientHotKey": {
+		"Key": 20,
+		"ModifierKeys": 4
+	}
 }
