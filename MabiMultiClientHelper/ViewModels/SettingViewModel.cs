@@ -22,10 +22,10 @@ namespace MabiMultiClientHelper.ViewModels
                 {
                     return;
                 }
-                //if (value.ModifierKeys != System.Windows.Input.ModifierKeys.None)
-                //{
-                //    return;
-                //}
+                if (value.ModifierKeys != System.Windows.Input.ModifierKeys.None)
+                {
+                    return;
+                }
                 Set(ref activeMultiClientHelperHotKey, value);
             }
         }
@@ -42,10 +42,10 @@ namespace MabiMultiClientHelper.ViewModels
                 {
                     return;
                 }
-                //if (value.ModifierKeys != System.Windows.Input.ModifierKeys.None)
-                //{
-                //    return;
-                //}
+                if (value.ModifierKeys != System.Windows.Input.ModifierKeys.None)
+                {
+                    return;
+                }
                 Set(ref activeNextMainClientHotKey, value);
             }
         }
@@ -62,10 +62,10 @@ namespace MabiMultiClientHelper.ViewModels
                 {
                     return;
                 }
-                //if (value.ModifierKeys != System.Windows.Input.ModifierKeys.None)
-                //{
-                //    return;
-                //}
+                if (value.ModifierKeys != System.Windows.Input.ModifierKeys.None)
+                {
+                    return;
+                }
                 Set(ref activeNextSubClientHotKey, value);
             }
         }

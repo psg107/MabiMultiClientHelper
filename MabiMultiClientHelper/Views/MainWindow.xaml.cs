@@ -58,7 +58,7 @@ namespace MabiMultiClientHelper.Views
                 {
                     case Key k when GlobalHotkey.Instance.ActiveMultiClientHelperHotKey != null &&
                                     key == GlobalHotkey.Instance.ActiveMultiClientHelperHotKey.Key &&
-                                    GlobalHotkey.Instance.ActiveMultiClientHelperHotKey.ModifierKeys.HasFlag(modifier):
+                                    GlobalHotkey.Instance.ActiveMultiClientHelperHotKey.ModifierKeys == modifier:
                         this.Topmost = true;
                         WinAPI.SetForegroundWindow(new WindowInteropHelper(this).Handle);
                         SetBinding(TopmostProperty, new Binding
@@ -70,7 +70,7 @@ namespace MabiMultiClientHelper.Views
 
                     case Key k when GlobalHotkey.Instance.ActiveNextMainClientHotKey != null &&
                                     key == GlobalHotkey.Instance.ActiveNextMainClientHotKey.Key &&
-                                    GlobalHotkey.Instance.ActiveNextMainClientHotKey.ModifierKeys.HasFlag(modifier):
+                                    GlobalHotkey.Instance.ActiveNextMainClientHotKey.ModifierKeys == modifier:
                         {
                             var vm = this.DataContext as MainViewModel;
                             vm.ActiveNextMainClientCommand.Execute();
@@ -79,7 +79,7 @@ namespace MabiMultiClientHelper.Views
 
                     case Key k when GlobalHotkey.Instance.ActiveNextSubClientHotKey != null &&
                                     key == GlobalHotkey.Instance.ActiveNextSubClientHotKey.Key &&
-                                    GlobalHotkey.Instance.ActiveNextSubClientHotKey.ModifierKeys.HasFlag(modifier):
+                                    GlobalHotkey.Instance.ActiveNextSubClientHotKey.ModifierKeys == modifier:
                         {
                             var vm = this.DataContext as MainViewModel;
                             vm.ActiveNextSubClientCommand.Execute();

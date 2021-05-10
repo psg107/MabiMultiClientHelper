@@ -13,7 +13,7 @@ namespace MabiMultiClientHelper.Services
         public List<ClientInfo> Scan()
         {
             var processes = Process.GetProcessesByName("Client")
-                                   .Where(x => x.HandleCount != 0);
+                                   .Where(x => x.HandleCount > 100);
 
             var clients = processes
                 .OrderBy(x => x.StartTime)

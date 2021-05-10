@@ -208,6 +208,7 @@ namespace MabiMultiClientHelper.ViewModels
                         WinAPI.ShowWindow(clientInfo.Handle, WinAPI.SW_SHOW);
                         clientInfo.IsHiddenWindow = false;
                     }
+                    WinAPI.SetForegroundWindow(clientInfo.Handle);
                     WinAPI.ForceForegroundWindow(clientInfo.Process.MainWindowHandle);
                 });
             }
@@ -530,10 +531,15 @@ namespace MabiMultiClientHelper.ViewModels
                         return;
                     }
 
+                    var activePID = WinAPI.GetActiveProcessId();
                     var idx = this.MainClients.IndexOf(SelectedMainClient);
-                    var nextidx = (idx + 1) % this.MainClients.Count;
 
-                    var clientInfo = this.MainClients[nextidx];
+                    if (SelectedMainClient.PID == activePID)
+                    {
+                        idx = (idx + 1) % this.MainClients.Count;
+                    }
+
+                    var clientInfo = this.MainClients[idx];
                     this.ActivateWindowCommand.Execute(clientInfo);
 
                     SelectedMainClient = clientInfo;
@@ -554,18 +560,23 @@ namespace MabiMultiClientHelper.ViewModels
                     {
                         SelectedSubClient = this.SubClients.FirstOrDefault();
                     }
-                    if (SelectedMainClient == null)
+                    if (SelectedSubClient == null)
                     {
                         return;
                     }
 
+                    var activePID = WinAPI.GetActiveProcessId();
                     var idx = this.SubClients.IndexOf(SelectedSubClient);
-                    var nextidx = (idx + 1) % this.SubClients.Count;
 
-                    var clientInfo = this.SubClients[nextidx];
-                    this.ActivateWindowCommand.Execute(clientInfo);
+                    if (SelectedSubClient.PID == activePID)
+                    {
+                        idx = (idx + 1) % this.SubClients.Count;
+                    }
 
+                    var clientInfo = this.SubClients[idx];
                     SelectedSubClient = clientInfo;
+
+                    this.ActivateWindowCommand.Execute(clientInfo);
                 });
             }
         }
