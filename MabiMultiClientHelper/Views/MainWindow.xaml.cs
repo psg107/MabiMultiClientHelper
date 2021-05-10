@@ -60,7 +60,9 @@ namespace MabiMultiClientHelper.Views
                                     key == GlobalHotkey.Instance.ActiveMultiClientHelperHotKey.Key &&
                                     GlobalHotkey.Instance.ActiveMultiClientHelperHotKey.ModifierKeys == modifier:
                         this.Topmost = true;
-                        WinAPI.SetForegroundWindow(new WindowInteropHelper(this).Handle);
+                        var handle = new WindowInteropHelper(this).Handle;
+                        WinAPI.SetForegroundWindow(handle);
+                        WinAPI.ForceForegroundWindow(handle);
                         SetBinding(TopmostProperty, new Binding
                         {
                             ElementName = "TopMostCheckBox",
