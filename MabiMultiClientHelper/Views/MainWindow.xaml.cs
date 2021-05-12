@@ -59,15 +59,9 @@ namespace MabiMultiClientHelper.Views
                     case Key k when GlobalHotkey.Instance.ActiveMultiClientHelperHotKey != null &&
                                     key == GlobalHotkey.Instance.ActiveMultiClientHelperHotKey.Key &&
                                     GlobalHotkey.Instance.ActiveMultiClientHelperHotKey.ModifierKeys == modifier:
-                        this.Topmost = true;
-                        var handle = new WindowInteropHelper(this).Handle;
-                        WinAPI.SetForegroundWindow(handle);
-                        WinAPI.ForceForegroundWindow(handle);
-                        SetBinding(TopmostProperty, new Binding
                         {
-                            ElementName = "TopMostCheckBox",
-                            Path = new PropertyPath("IsChecked")
-                        });
+                            FocusHelper.ActivateMultiClientHelper();
+                        }
                         break;
 
                     case Key k when GlobalHotkey.Instance.ActiveNextMainClientHotKey != null &&

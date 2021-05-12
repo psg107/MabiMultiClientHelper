@@ -99,6 +99,7 @@
     <Compile Include="AttachedProperty\DragAndDrop.cs" />
     <Compile Include="GlobalHotkey.cs" />
     <Compile Include="Helpers\BindingProxy.cs" />
+    <Compile Include="Helpers\FocusHelper.cs" />
     <Compile Include="Helpers\Keylogger.cs" />
     <Compile Include="Services\MessageBoxService.cs" />
     <Compile Include="Helpers\ProcessManager.cs" />

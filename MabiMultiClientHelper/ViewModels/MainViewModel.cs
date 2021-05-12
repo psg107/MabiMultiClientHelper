@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace MabiMultiClientHelper.ViewModels
 {
@@ -209,7 +210,7 @@ namespace MabiMultiClientHelper.ViewModels
                         clientInfo.IsHiddenWindow = false;
                     }
                     WinAPI.SetForegroundWindow(clientInfo.Handle);
-                    WinAPI.ForceForegroundWindow(clientInfo.Process.MainWindowHandle);
+                    //WinAPI.ForceForegroundWindow(clientInfo.Process.MainWindowHandle);
                 });
             }
         }
@@ -540,9 +541,11 @@ namespace MabiMultiClientHelper.ViewModels
                     }
 
                     var clientInfo = this.MainClients[idx];
-                    this.ActivateWindowCommand.Execute(clientInfo);
-
                     SelectedMainClient = clientInfo;
+
+                    FocusHelper.ActivateMultiClientHelper();
+                    Thread.Sleep(100);
+                    this.ActivateWindowCommand.Execute(clientInfo);
                 });
             }
         }
@@ -576,6 +579,8 @@ namespace MabiMultiClientHelper.ViewModels
                     var clientInfo = this.SubClients[idx];
                     SelectedSubClient = clientInfo;
 
+                    FocusHelper.ActivateMultiClientHelper();
+                    Thread.Sleep(100);
                     this.ActivateWindowCommand.Execute(clientInfo);
                 });
             }
